@@ -637,6 +637,221 @@
       color: #93c5fd;
     }
 
+    /* Workspace Mode Switcher (Browser vs Downloader) */
+    .workspace-nav-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+    }
+
+    .workspace-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .workspace-nav-btn:hover {
+      background: rgba(255, 255, 255, 0.07);
+      color: #fff;
+    }
+
+    .workspace-nav-btn.active {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(6, 182, 212, 0.15));
+      border-color: rgba(59, 130, 246, 0.55);
+      color: #93c5fd;
+      box-shadow: 0 0 14px rgba(59, 130, 246, 0.25);
+    }
+
+    /* Downloader Hub Card */
+    .downloader-card {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .download-input-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    @media (max-width: 680px) {
+      .download-input-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    .download-options-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      padding: 4px 2px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      accent-color: var(--accent-blue);
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+
+    /* Active Download Card */
+    .download-task-card {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+      animation: fadeIn 0.25s ease;
+    }
+
+    .download-task-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .download-file-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .download-file-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-md);
+      background: rgba(59, 130, 246, 0.18);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      color: #60a5fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .download-file-name {
+      font-weight: 700;
+      color: #fff;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 360px;
+    }
+
+    .download-file-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 2px;
+    }
+
+    .download-metrics-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .speed-tag {
+      font-family: ui-monospace, monospace;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.15);
+      padding: 2px 8px;
+      border-radius: 9999px;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      font-size: 11px;
+    }
+
+    .eta-tag {
+      font-family: ui-monospace, monospace;
+      color: var(--accent-amber);
+      font-size: 11px;
+    }
+
+    .progress-bar-animated {
+      background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.15) 75%,
+        transparent 75%,
+        transparent
+      );
+      background-size: 1rem 1rem;
+      animation: progress-bar-stripes 1s linear infinite;
+    }
+
+    @keyframes progress-bar-stripes {
+      from { background-position: 1rem 0; }
+      to { background-position: 0 0; }
+    }
+
+    /* Completed Downloads Shelf */
+    .download-shelf {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .download-shelf-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      transition: all 0.2s;
+    }
+
+    .download-shelf-item:hover {
+      background: rgba(15, 23, 42, 0.9);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
     /* Transfer Progress */
     .transfer-progress-card {
       display: none;
@@ -1276,105 +1491,235 @@
       <!-- CLIENT WORKSPACE -->
       <div id="client-workspace" class="workspace-wrapper" style="display: none;">
         
-        <!-- Address Bar Card -->
-        <div class="glass-panel address-bar-card">
-          <form id="form-fetch-request">
-            <div class="address-bar">
-              <select class="method-select" id="http-method">
-                <option value="GET">GET</option>
-                <option value="POST">POST</option>
-                <option value="HEAD">HEAD</option>
-              </select>
-              <input 
-                type="url" 
-                class="url-input" 
-                id="http-url" 
-                placeholder="Enter resource URL (e.g. https://dummyjson.com/quotes/random)"
-                value="https://dummyjson.com/quotes/random"
-                required
-              />
-              <button type="submit" class="btn btn-primary" id="btn-send-fetch">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                <span>Tunnel Fetch</span>
-              </button>
-            </div>
-          </form>
+        <!-- Workspace Mode Navigation -->
+        <div class="workspace-nav-tabs">
+          <button type="button" class="workspace-nav-btn active" id="btn-mode-browser">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            <span>Web &amp; API Browser</span>
+          </button>
+          <button type="button" class="workspace-nav-btn" id="btn-mode-downloader">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>File Downloader Hub</span>
+            <span id="completed-count-pill" style="display:none; font-size: 10px; background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 1px 6px; border-radius: 9999px;">0</span>
+          </button>
+        </div>
 
-          <!-- Preset Quick Links -->
-          <div class="preset-chips">
-            <span class="preset-label">Test Presets:</span>
-            <button class="preset-chip" data-url="https://dummyjson.com/quotes/random">Quote API (JSON)</button>
-            <button class="preset-chip" data-url="https://catfact.ninja/fact">Cat Facts API</button>
-            <button class="preset-chip" data-url="https://api.ipify.org?format=json">IP Geolocation</button>
-            <button class="preset-chip" data-url="https://picsum.photos/400/300">Random Image (JPEG)</button>
-            <button class="preset-chip" data-url="https://en.wikipedia.org/api/rest_v1/page/summary/WebRTC">Wikipedia WebRTC</button>
+        <!-- SECTION 1: Standard Web & API Browser Mode -->
+        <div id="section-browser-mode" style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Address Bar Card -->
+          <div class="glass-panel address-bar-card">
+            <form id="form-fetch-request">
+              <div class="address-bar">
+                <select class="method-select" id="http-method">
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="HEAD">HEAD</option>
+                </select>
+                <input 
+                  type="url" 
+                  class="url-input" 
+                  id="http-url" 
+                  placeholder="Enter resource URL (e.g. https://dummyjson.com/quotes/random)"
+                  value="https://dummyjson.com/quotes/random"
+                  required
+                />
+                <button type="submit" class="btn btn-primary" id="btn-send-fetch">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                  <span>Tunnel Fetch</span>
+                </button>
+              </div>
+            </form>
+
+            <!-- Preset Quick Links -->
+            <div class="preset-chips">
+              <span class="preset-label">Test Presets:</span>
+              <button class="preset-chip" data-url="https://dummyjson.com/quotes/random">Quote API (JSON)</button>
+              <button class="preset-chip" data-url="https://catfact.ninja/fact">Cat Facts API</button>
+              <button class="preset-chip" data-url="https://api.ipify.org?format=json">IP Geolocation</button>
+              <button class="preset-chip" data-url="https://picsum.photos/400/300">Random Image (JPEG)</button>
+              <button class="preset-chip" data-url="https://en.wikipedia.org/api/rest_v1/page/summary/WebRTC">Wikipedia WebRTC</button>
+            </div>
+          </div>
+
+          <!-- Transfer Progress Indicator -->
+          <div class="transfer-progress-card" id="transfer-progress-box">
+            <div class="progress-info">
+              <span id="progress-status-text">Relaying request chunks over DataChannel...</span>
+              <span id="progress-numbers">0 / 0 chunks (0 KB)</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+          </div>
+
+          <!-- Response Viewer -->
+          <div class="glass-panel response-card" id="response-viewer-card">
+            <div class="response-header">
+              <div class="response-meta">
+                <span class="status-code-badge s2xx" id="resp-status-badge">Ready</span>
+                <span class="response-stat" id="resp-time-stat">Latency: --</span>
+                <span class="response-stat" id="resp-size-stat">Size: --</span>
+                <span class="response-stat" id="resp-mime-stat">Type: --</span>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn btn-secondary" id="btn-copy-response">Copy Text</button>
+                <button class="btn btn-secondary" id="btn-download-response">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  <span>Save File</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="response-tabs">
+              <button class="tab-btn active" data-tab="tab-rendered">Rendered Preview</button>
+              <button class="tab-btn" data-tab="tab-raw">Raw Text / JSON</button>
+              <button class="tab-btn" data-tab="tab-headers">Headers</button>
+            </div>
+
+            <!-- Tab 1: Rendered Output -->
+            <div class="tab-content active" id="tab-rendered">
+              <div class="rendered-preview-container" id="preview-container">
+                <span style="color: var(--text-dim); font-size: 13px;">Execute a request above to render the response preview.</span>
+              </div>
+            </div>
+
+            <!-- Tab 2: Raw Code Output -->
+            <div class="tab-content" id="tab-raw">
+              <pre class="raw-code-box" id="raw-output-box">// Response payload will appear here...</pre>
+            </div>
+
+            <!-- Tab 3: Response Headers -->
+            <div class="tab-content" id="tab-headers">
+              <div style="max-height: 380px; overflow-y: auto;">
+                <table class="headers-table">
+                  <thead>
+                    <tr>
+                      <th>Header</th>
+                      <th>Value</th>
+                    </tr>
+                  </thead>
+                  <tbody id="headers-tbody">
+                    <tr>
+                      <td colspan="2" style="color: var(--text-dim); text-align: center;">No headers loaded yet.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Transfer Progress Indicator -->
-        <div class="transfer-progress-card" id="transfer-progress-box">
-          <div class="progress-info">
-            <span id="progress-status-text">Relaying request chunks over DataChannel...</span>
-            <span id="progress-numbers">0 / 0 chunks (0 KB)</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="progress-fill"></div>
-          </div>
-        </div>
-
-        <!-- Response Viewer -->
-        <div class="glass-panel response-card" id="response-viewer-card">
-          <div class="response-header">
-            <div class="response-meta">
-              <span class="status-code-badge s2xx" id="resp-status-badge">Ready</span>
-              <span class="response-stat" id="resp-time-stat">Latency: --</span>
-              <span class="response-stat" id="resp-size-stat">Size: --</span>
-              <span class="response-stat" id="resp-mime-stat">Type: --</span>
+        <!-- SECTION 2: Dedicated File Downloader Hub -->
+        <div id="section-downloader-mode" style="display: none; flex-direction: column; gap: 20px;">
+          <div class="glass-panel downloader-card">
+            <div>
+              <h2 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px;">P2P File Downloader</h2>
+              <p style="font-size: 12px; color: var(--text-muted);">
+                Download documents, high-res media, datasets, and archives streamed directly through the online host with SCTP flow-control and backpressure.
+              </p>
             </div>
-            <div style="display: flex; gap: 8px;">
-              <button class="btn btn-secondary" id="btn-copy-response">Copy Text</button>
-              <button class="btn btn-secondary" id="btn-download-response">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                <span>Save File</span>
-              </button>
+
+            <form id="form-file-download">
+              <div class="download-input-row">
+                <input 
+                  type="url" 
+                  class="url-input" 
+                  id="download-url-input" 
+                  style="background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 10px 14px;"
+                  placeholder="Enter file URL (e.g. https://example.com/file.pdf or .zip or .jpg)"
+                  value="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+                  required
+                />
+                <button type="submit" class="btn btn-emerald" id="btn-start-download" style="padding: 10px 20px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  <span>Download File</span>
+                </button>
+              </div>
+
+              <div class="download-options-row" style="margin-top: 10px;">
+                <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="chk-auto-save" checked />
+                    <span>Auto-save directly to Downloads folder upon completion</span>
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="chk-stream-optimizer" checked />
+                    <span>Stream chunk optimizer &amp; backpressure flow control</span>
+                  </label>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 11px; color: var(--text-dim);">Custom Name:</span>
+                  <input type="text" id="custom-filename-input" placeholder="auto-detect" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 4px 8px; font-size: 11px; color: #fff; width: 130px;" />
+                </div>
+              </div>
+            </form>
+
+            <!-- Quick Download Presets -->
+            <div class="preset-chips" style="margin-top: 4px;">
+              <span class="preset-label">Quick Download Presets:</span>
+              <button type="button" class="preset-chip dl-preset" data-url="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" data-name="sample-document.pdf">📄 Sample PDF (13 KB)</button>
+              <button type="button" class="preset-chip dl-preset" data-url="https://picsum.photos/1600/1200" data-name="sample-wallpaper.jpg">🖼️ HD Wallpaper (JPG)</button>
+              <button type="button" class="preset-chip dl-preset" data-url="https://actions.google.com/sounds/v1/water/rain_heavy.ogg" data-name="heavy-rain.ogg">🎵 Audio Track (OGG)</button>
+              <button type="button" class="preset-chip dl-preset" data-url="https://dummyjson.com/products?limit=100" data-name="products-catalog.json">📊 Product Catalog (JSON)</button>
+              <button type="button" class="preset-chip dl-preset" data-url="https://raw.githubusercontent.com/vinta/awesome-python/master/README.md" data-name="awesome-python.md">📝 Markdown Docs</button>
             </div>
           </div>
 
-          <!-- Tabs -->
-          <div class="response-tabs">
-            <button class="tab-btn active" data-tab="tab-rendered">Rendered Preview</button>
-            <button class="tab-btn" data-tab="tab-raw">Raw Text / JSON</button>
-            <button class="tab-btn" data-tab="tab-headers">Headers</button>
-          </div>
+          <!-- Active Download Task Box -->
+          <div id="active-download-container" style="display: none;">
+            <div class="download-task-card" id="active-download-card">
+              <div class="download-task-header">
+                <div class="download-file-info">
+                  <div class="download-file-icon" id="active-dl-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                  </div>
+                  <div>
+                    <div class="download-file-name" id="active-dl-name">document.pdf</div>
+                    <div class="download-file-sub">
+                      <span id="active-dl-type">MIME: application/pdf</span>
+                      <span>•</span>
+                      <span id="active-dl-chunks">0 chunks received</span>
+                    </div>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <button type="button" class="btn btn-secondary" id="btn-cancel-download" style="padding: 4px 10px; font-size: 11px;">Cancel</button>
+                </div>
+              </div>
 
-          <!-- Tab 1: Rendered Output -->
-          <div class="tab-content active" id="tab-rendered">
-            <div class="rendered-preview-container" id="preview-container">
-              <span style="color: var(--text-dim); font-size: 13px;">Execute a request above to render the response preview.</span>
+              <!-- Animated Progress Bar -->
+              <div class="progress-bar-bg" style="height: 10px; background: rgba(0,0,0,0.4); border-radius: 9999px; overflow: hidden; border: 1px solid var(--border-subtle);">
+                <div class="progress-bar-fill progress-bar-animated" id="active-dl-fill" style="width: 0%; height: 100%; transition: width 0.15s ease;"></div>
+              </div>
+
+              <div class="download-metrics-row">
+                <div>
+                  <span id="active-dl-status" style="font-weight: 600; color: #fff;">Streaming from Host...</span>
+                  <span id="active-dl-bytes" style="color: var(--text-dim); margin-left: 8px;">0 KB / 0 KB (0%)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span class="speed-tag" id="active-dl-speed">-- KB/s</span>
+                  <span class="eta-tag" id="active-dl-eta">calculating...</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Tab 2: Raw Code Output -->
-          <div class="tab-content" id="tab-raw">
-            <pre class="raw-code-box" id="raw-output-box">// Response payload will appear here...</pre>
-          </div>
+          <!-- Completed Downloads Shelf -->
+          <div class="glass-panel" style="padding: 20px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <div>
+                <h3 style="font-size: 14px; font-weight: 700; color: #fff;">Completed Downloads Shelf</h3>
+                <p style="font-size: 12px; color: var(--text-muted);">Files downloaded in this session available for instant saving or inspection</p>
+              </div>
+              <button type="button" class="btn btn-secondary" id="btn-clear-downloads-shelf" style="font-size: 11px; padding: 4px 10px;">Clear List</button>
+            </div>
 
-          <!-- Tab 3: Response Headers -->
-          <div class="tab-content" id="tab-headers">
-            <div style="max-height: 380px; overflow-y: auto;">
-              <table class="headers-table">
-                <thead>
-                  <tr>
-                    <th>Header</th>
-                    <th>Value</th>
-                  </tr>
-                </thead>
-                <tbody id="headers-tbody">
-                  <tr>
-                    <td colspan="2" style="color: var(--text-dim); text-align: center;">No headers loaded yet.</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="download-shelf" id="completed-shelf-container">
+              <div id="shelf-empty-msg" style="text-align: center; color: var(--text-dim); font-size: 12px; padding: 24px; border: 1px dashed var(--border-subtle); border-radius: var(--radius-md);">
+                No files downloaded yet. Enter a URL above and click "Download File" to test streaming downloads.
+              </div>
             </div>
           </div>
         </div>
@@ -1507,6 +1852,11 @@
       let currentResponseBlob = null;
       let currentResponseText = '';
       let localSignalingToken = '';
+
+      // Dedicated File Downloader Hub State
+      let completedDownloads = []; // array of { id, filename, mimeType, totalBytes, blob, url, timestamp, duration, speed }
+      let activeDownloadTask = null; // { id, url, filename, autoSave, totalBytes, totalChunks, chunks: [], receivedBytes, startTime, lastTick, lastBytes, speed }
+      let pendingDownloadOptions = { autoSave: true, customFilename: '' };
 
       // Host Stats
       let hostStats = {
@@ -1844,9 +2194,147 @@
         }
       }
 
-      // --- HOST PROXY FETCH RELAY ENGINE ---
+      // Helper: Extract filename from Content-Disposition, URL pathname, or custom name
+      function extractFilename(headers, url, customName) {
+        if (customName && customName.trim()) {
+          return customName.trim();
+        }
+        if (headers) {
+          const cd = headers['content-disposition'] || headers['Content-Disposition'];
+          if (cd) {
+            const matchStar = cd.match(/filename\*=UTF-8''([^;\s]+)/i);
+            if (matchStar && matchStar[1]) {
+              try { return decodeURIComponent(matchStar[1]); } catch(e) { return matchStar[1]; }
+            }
+            const matchQuote = cd.match(/filename="([^"]+)"/i) || cd.match(/filename=([^;\s]+)/i);
+            if (matchQuote && matchQuote[1]) {
+              return matchQuote[1].replace(/["']/g, '').trim();
+            }
+          }
+        }
+        try {
+          const pathname = new URL(url).pathname;
+          const segment = pathname.split('/').filter(Boolean).pop();
+          if (segment && segment.includes('.') && segment.length <= 80) {
+            return decodeURIComponent(segment);
+          }
+        } catch(e) {}
+        return 'downloaded-file';
+      }
+
+      // Helper: Trigger browser file download directly to disk
+      function saveBlobToDisk(blob, filename) {
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = filename || 'downloaded-file';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 10000);
+      }
+
+      // Helper: Render completed downloads shelf cards
+      function renderCompletedShelf() {
+        const container = document.getElementById('completed-shelf-container');
+        const countPill = document.getElementById('completed-count-pill');
+        if (!container) return;
+
+        if (completedDownloads.length === 0) {
+          container.innerHTML = `
+            <div id="shelf-empty-msg" style="text-align: center; color: var(--text-dim); font-size: 12px; padding: 24px; border: 1px dashed var(--border-subtle); border-radius: var(--radius-md);">
+              No files downloaded yet. Enter a URL above and click "Download File" to test streaming downloads.
+            </div>
+          `;
+          if (countPill) countPill.style.display = 'none';
+          return;
+        }
+
+        if (countPill) {
+          countPill.textContent = completedDownloads.length;
+          countPill.style.display = 'inline-block';
+        }
+
+        container.innerHTML = '';
+        completedDownloads.forEach((item, index) => {
+          const itemEl = document.createElement('div');
+          itemEl.className = 'download-item-card';
+
+          const mime = (item.mimeType || '').toLowerCase();
+          let iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>';
+
+          if (mime.startsWith('image/')) {
+            iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>';
+          } else if (mime.startsWith('audio/') || mime.startsWith('video/')) {
+            iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>';
+          } else if (mime.includes('pdf')) {
+            iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>';
+          } else if (mime.includes('zip') || mime.includes('tar') || mime.includes('compressed')) {
+            iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>';
+          }
+
+          itemEl.innerHTML = `
+            <div class="download-item-left">
+              <div class="download-file-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399; width: 34px; height: 34px;">
+                ${iconSvg}
+              </div>
+              <div class="download-item-details">
+                <div class="download-item-name" title="${escapeHtml(item.filename)}">${escapeHtml(item.filename)}</div>
+                <div class="download-item-meta">
+                  <span style="color: #34d399; font-weight: 600;">${formatBytes(item.totalBytes)}</span>
+                  <span>•</span>
+                  <span>${escapeHtml(item.speed || 'high-speed')}</span>
+                  <span>•</span>
+                  <span>${escapeHtml(item.duration ? item.duration + 'ms' : '')}</span>
+                  <span>•</span>
+                  <span>${escapeHtml(item.timestamp)}</span>
+                </div>
+              </div>
+            </div>
+            <div class="download-item-actions">
+              <button type="button" class="btn btn-emerald btn-save-disk" data-index="${index}" style="padding: 5px 12px; font-size: 11px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Save to Disk</span>
+              </button>
+              <button type="button" class="btn btn-secondary btn-inspect-blob" data-index="${index}" style="padding: 5px 10px; font-size: 11px;">
+                <span>Inspect</span>
+              </button>
+            </div>
+          `;
+
+          container.appendChild(itemEl);
+        });
+
+        // Add action listeners
+        container.querySelectorAll('.btn-save-disk').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.currentTarget.dataset.index, 10);
+            const item = completedDownloads[idx];
+            if (item && item.blob) {
+              saveBlobToDisk(item.blob, item.filename);
+              showToast(`Saving "${item.filename}" to Downloads`);
+            }
+          });
+        });
+
+        container.querySelectorAll('.btn-inspect-blob').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.currentTarget.dataset.index, 10);
+            const item = completedDownloads[idx];
+            if (item && item.blob) {
+              currentResponseBlob = item.blob;
+              document.getElementById('btn-mode-browser').click();
+              renderResponse(item.blob, item.mimeType, item.url);
+              showToast(`Inspecting "${item.filename}" in viewer`);
+            }
+          });
+        });
+      }
+
+      // --- HOST PROXY FETCH RELAY ENGINE (STREAM & DOWNLOAD OPTIMIZED) ---
       async function handleHostFetchRequest(req) {
-        log('DATA', `Host received request [${req.method}] ${req.url}`);
+        const isDownload = Boolean(req.isDownload);
+        log('DATA', `Host received ${isDownload ? '[DOWNLOAD]' : 'request'} [${req.method || 'GET'}] ${req.url}`);
         hostStats.requestsRelayed++;
         hostStats.activeRequests++;
         updateHostStatsUI();
@@ -1876,74 +2364,168 @@
             headersObj[key] = val;
           });
 
-          const arrayBuffer = await response.arrayBuffer();
-          const uint8 = new Uint8Array(arrayBuffer);
-          const totalBytes = uint8.byteLength;
-          const totalChunks = Math.ceil(totalBytes / CHUNK_SIZE) || 1;
-          const duration = Date.now() - startTime;
+          // Detect filename
+          const filename = extractFilename(headersObj, req.url, req.customFilename);
+          const contentLength = headersObj['content-length'] ? parseInt(headersObj['content-length'], 10) : 0;
 
-          hostStats.bytesRelayed += totalBytes;
-          hostStats.activeRequests = Math.max(0, hostStats.activeRequests - 1);
-          updateHostStatsUI();
-          addRelayTableRow(req.method, req.url, status, totalChunks, totalBytes, duration);
+          // Check if streaming is supported for high performance and low memory
+          const canStream = response.body && typeof response.body.getReader === 'function';
 
-          log('DATA', `Fetched ${totalBytes} bytes (${totalChunks} chunks) in ${duration}ms. Streaming to peer...`);
+          if (canStream) {
+            log('DATA', `Streaming response for ${filename} using ReadableStream reader & backpressure...`);
+            const reader = response.body.getReader();
+            let totalBytes = 0;
+            let chunkIndex = 0;
+            const estimatedChunks = contentLength > 0 ? Math.ceil(contentLength / CHUNK_SIZE) : 0;
 
-          // 1. Send METADATA frame
-          const metaMsg = JSON.stringify({
-            id: req.id,
-            type: 'METADATA',
-            url: req.url,
-            status,
-            statusText,
-            mimeType,
-            headers: headersObj,
-            totalChunks,
-            totalBytes,
-          });
-          dataChannel.send(metaMsg);
-
-          // 2. Stream CHUNKS (16 KB each encoded to Base64)
-          for (let i = 0; i < totalChunks; i++) {
-            const start = i * CHUNK_SIZE;
-            const end = Math.min(start + CHUNK_SIZE, totalBytes);
-            const slice = uint8.subarray(start, end);
-            const chunkBase64 = uint8ToBase64(slice);
-
-            const chunkMsg = JSON.stringify({
+            // 1. Send METADATA frame immediately so client displays progress UI
+            const metaMsg = JSON.stringify({
               id: req.id,
-              type: 'CHUNK',
-              chunkIndex: i,
-              totalChunks,
-              data: chunkBase64,
+              type: 'METADATA',
+              url: req.url,
+              status,
+              statusText,
+              mimeType,
+              headers: headersObj,
+              totalChunks: estimatedChunks,
+              totalBytes: contentLength,
+              filename,
+              isDownload,
             });
+            dataChannel.send(metaMsg);
 
-            // Backpressure check if bufferedAmount is high
-            while (dataChannel.bufferedAmount > 65536) {
-              await new Promise(r => setTimeout(r, 20));
+            // Stream chunks as they arrive from network
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              if (!value || value.byteLength === 0) continue;
+
+              totalBytes += value.byteLength;
+
+              // Slice into SCTP-safe 16KB frames
+              let offset = 0;
+              while (offset < value.byteLength) {
+                const end = Math.min(offset + CHUNK_SIZE, value.byteLength);
+                const slice = value.subarray(offset, end);
+                offset = end;
+
+                // Backpressure check: wait if WebRTC SCTP send buffer is over 64 KB
+                while (dataChannel && dataChannel.bufferedAmount > 65536) {
+                  await new Promise(r => setTimeout(r, 15));
+                }
+
+                if (!dataChannel || dataChannel.readyState !== 'open') {
+                  throw new Error('DataChannel closed during streaming transfer');
+                }
+
+                const chunkMsg = JSON.stringify({
+                  id: req.id,
+                  type: 'CHUNK',
+                  chunkIndex: chunkIndex++,
+                  totalChunks: estimatedChunks,
+                  data: uint8ToBase64(slice),
+                  isDownload,
+                });
+                dataChannel.send(chunkMsg);
+              }
             }
 
-            dataChannel.send(chunkMsg);
-          }
+            const duration = Date.now() - startTime;
+            hostStats.bytesRelayed += totalBytes;
+            hostStats.activeRequests = Math.max(0, hostStats.activeRequests - 1);
+            updateHostStatsUI();
+            addRelayTableRow(req.method || 'GET', req.url, status, chunkIndex, totalBytes, duration, null, isDownload, filename);
 
-          // 3. Send END frame
-          const endMsg = JSON.stringify({
-            id: req.id,
-            type: 'END',
-          });
-          dataChannel.send(endMsg);
-          log('DATA', `Finished streaming request ${req.id}`);
+            // Send END frame
+            const endMsg = JSON.stringify({
+              id: req.id,
+              type: 'END',
+              totalChunks: chunkIndex,
+              totalBytes,
+              filename,
+              isDownload,
+            });
+            dataChannel.send(endMsg);
+            log('DATA', `Finished streaming [${filename}] (${formatBytes(totalBytes)}, ${chunkIndex} chunks) in ${duration}ms`);
+          } else {
+            // Standard ArrayBuffer fallback
+            const arrayBuffer = await response.arrayBuffer();
+            const uint8 = new Uint8Array(arrayBuffer);
+            const totalBytes = uint8.byteLength;
+            const totalChunks = Math.ceil(totalBytes / CHUNK_SIZE) || 1;
+            const duration = Date.now() - startTime;
+
+            hostStats.bytesRelayed += totalBytes;
+            hostStats.activeRequests = Math.max(0, hostStats.activeRequests - 1);
+            updateHostStatsUI();
+            addRelayTableRow(req.method || 'GET', req.url, status, totalChunks, totalBytes, duration, null, isDownload, filename);
+
+            log('DATA', `Fetched ${totalBytes} bytes (${totalChunks} chunks) in ${duration}ms. Streaming to peer...`);
+
+            // 1. Send METADATA frame
+            const metaMsg = JSON.stringify({
+              id: req.id,
+              type: 'METADATA',
+              url: req.url,
+              status,
+              statusText,
+              mimeType,
+              headers: headersObj,
+              totalChunks,
+              totalBytes,
+              filename,
+              isDownload,
+            });
+            dataChannel.send(metaMsg);
+
+            // 2. Stream CHUNKS
+            for (let i = 0; i < totalChunks; i++) {
+              const start = i * CHUNK_SIZE;
+              const end = Math.min(start + CHUNK_SIZE, totalBytes);
+              const slice = uint8.subarray(start, end);
+              const chunkBase64 = uint8ToBase64(slice);
+
+              const chunkMsg = JSON.stringify({
+                id: req.id,
+                type: 'CHUNK',
+                chunkIndex: i,
+                totalChunks,
+                data: chunkBase64,
+                isDownload,
+              });
+
+              // Backpressure check
+              while (dataChannel.bufferedAmount > 65536) {
+                await new Promise(r => setTimeout(r, 20));
+              }
+
+              dataChannel.send(chunkMsg);
+            }
+
+            // 3. Send END frame
+            const endMsg = JSON.stringify({
+              id: req.id,
+              type: 'END',
+              totalChunks,
+              totalBytes,
+              filename,
+              isDownload,
+            });
+            dataChannel.send(endMsg);
+            log('DATA', `Finished streaming request ${req.id}`);
+          }
         } catch (err) {
           log('ERROR', `Host fetch failed: ${err.message}`);
           hostStats.activeRequests = Math.max(0, hostStats.activeRequests - 1);
           updateHostStatsUI();
-          addRelayTableRow(req.method, req.url, 0, 0, 0, Date.now() - startTime, err.message);
+          addRelayTableRow(req.method || 'GET', req.url, 0, 0, 0, Date.now() - startTime, err.message, isDownload);
 
           if (dataChannel && dataChannel.readyState === 'open') {
             dataChannel.send(JSON.stringify({
               id: req.id,
               type: 'ERROR',
               url: req.url,
+              isDownload,
               error: err.message || 'CORS or Network Error prevented host from fetching this resource.',
             }));
           }
@@ -1957,7 +2539,7 @@
         if (bytesEl) bytesEl.textContent = formatBytes(hostStats.bytesRelayed);
       }
 
-      function addRelayTableRow(method, url, status, chunks, bytes, duration, errMsg) {
+      function addRelayTableRow(method, url, status, chunks, bytes, duration, errMsg, isDownload, filename) {
         const tbody = document.getElementById('relay-table-tbody');
         const emptyRow = document.getElementById('relay-empty-row');
         if (emptyRow) emptyRow.remove();
@@ -1968,11 +2550,15 @@
           ? `<span class="status-code-badge s2xx">${status} OK</span>`
           : `<span class="status-code-badge s4xx">${status || 'ERR'}</span>`;
 
+        const downloadBadge = isDownload 
+          ? `<span style="font-size: 10px; background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 2px 6px; border-radius: 4px; margin-right: 4px; font-weight: 700;">DL</span>` 
+          : '';
+
         tr.innerHTML = `
           <td style="color: var(--text-dim); font-family: ui-monospace, monospace;">${timeStr}</td>
-          <td><span style="font-weight: 700; color: #60a5fa;">${escapeHtml(method)}</span></td>
+          <td>${downloadBadge}<span style="font-weight: 700; color: #60a5fa;">${escapeHtml(method)}</span></td>
           <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, monospace;" title="${escapeHtml(url)}">
-            ${escapeHtml(url)}
+            ${filename ? `<span style="color: #34d399; font-weight: 600;">${escapeHtml(filename)}</span> - ` : ''}${escapeHtml(url)}
           </td>
           <td>${statusBadge}</td>
           <td style="font-family: ui-monospace, monospace;">${chunks}</td>
@@ -1982,108 +2568,278 @@
         tbody.insertBefore(tr, tbody.firstChild);
       }
 
-      // --- CLIENT RESPONSE REASSEMBLY & RENDERING ---
+      // --- CLIENT RESPONSE REASSEMBLY & DOWNLOAD ENGINE ---
       function handleClientMetadata(msg) {
-        log('DATA', `Receiving response: ${msg.status} ${msg.statusText} (${msg.totalChunks} chunks, ${formatBytes(msg.totalBytes)})`);
+        const isDownload = Boolean(msg.isDownload);
+        log('DATA', `Receiving ${isDownload ? '[DOWNLOAD]' : 'response'}: ${msg.status} ${msg.statusText} (${msg.totalChunks || '?'} chunks, ${formatBytes(msg.totalBytes || 0)})`);
         
         activeTransfers.set(msg.id, {
           metadata: msg,
-          chunks: new Array(msg.totalChunks),
+          chunks: new Array(msg.totalChunks || 0),
           receivedCount: 0,
+          receivedBytes: 0,
           startTime: Date.now(),
         });
 
-        // Show progress bar
-        const progressBox = document.getElementById('transfer-progress-box');
-        progressBox.style.display = 'block';
-        updateProgressBar(0, msg.totalChunks, 0);
+        if (isDownload) {
+          // Initialize active download task
+          activeDownloadTask = {
+            id: msg.id,
+            url: msg.url,
+            filename: msg.filename || 'downloaded-file',
+            mimeType: msg.mimeType || 'application/octet-stream',
+            autoSave: pendingDownloadOptions.autoSave,
+            totalBytes: msg.totalBytes || 0,
+            totalChunks: msg.totalChunks || 0,
+            chunks: [],
+            receivedBytes: 0,
+            receivedChunks: 0,
+            startTime: Date.now(),
+            lastTick: Date.now(),
+            lastBytes: 0,
+            speed: 0,
+          };
 
-        // Update status badge
-        const badge = document.getElementById('resp-status-badge');
-        badge.className = 'status-code-badge ' + (msg.status >= 200 && msg.status < 300 ? 's2xx' : 's4xx');
-        badge.textContent = `${msg.status} ${msg.statusText}`;
-
-        document.getElementById('resp-mime-stat').textContent = `Type: ${msg.mimeType.split(';')[0]}`;
-        document.getElementById('resp-size-stat').textContent = `Size: ${formatBytes(msg.totalBytes)}`;
-
-        // Render headers in table
-        const tbody = document.getElementById('headers-tbody');
-        tbody.innerHTML = '';
-        if (msg.headers && Object.keys(msg.headers).length > 0) {
-          for (const [k, v] of Object.entries(msg.headers)) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${escapeHtml(k)}</td><td>${escapeHtml(v)}</td>`;
-            tbody.appendChild(tr);
+          // Show active download card
+          const dlContainer = document.getElementById('active-download-container');
+          if (dlContainer) {
+            dlContainer.style.display = 'block';
+            document.getElementById('active-dl-name').textContent = activeDownloadTask.filename;
+            document.getElementById('active-dl-type').textContent = `MIME: ${msg.mimeType.split(';')[0]}`;
+            document.getElementById('active-dl-chunks').textContent = `0 chunks received`;
+            document.getElementById('active-dl-fill').style.width = '0%';
+            document.getElementById('active-dl-status').textContent = 'Streaming from Host Gateway...';
+            document.getElementById('active-dl-bytes').textContent = `0 KB / ${msg.totalBytes > 0 ? formatBytes(msg.totalBytes) : 'calculating...'}`;
+            document.getElementById('active-dl-speed').textContent = '-- KB/s';
+            document.getElementById('active-dl-eta').textContent = 'calculating...';
           }
         } else {
-          tbody.innerHTML = '<tr><td colspan="2" style="color: var(--text-dim); text-align: center;">No headers provided.</td></tr>';
+          // Show browser progress bar
+          const progressBox = document.getElementById('transfer-progress-box');
+          progressBox.style.display = 'block';
+          updateProgressBar(0, msg.totalChunks, 0);
+
+          // Update status badge
+          const badge = document.getElementById('resp-status-badge');
+          badge.className = 'status-code-badge ' + (msg.status >= 200 && msg.status < 300 ? 's2xx' : 's4xx');
+          badge.textContent = `${msg.status} ${msg.statusText}`;
+
+          document.getElementById('resp-mime-stat').textContent = `Type: ${msg.mimeType.split(';')[0]}`;
+          document.getElementById('resp-size-stat').textContent = `Size: ${formatBytes(msg.totalBytes)}`;
+
+          // Render headers in table
+          const tbody = document.getElementById('headers-tbody');
+          tbody.innerHTML = '';
+          if (msg.headers && Object.keys(msg.headers).length > 0) {
+            for (const [k, v] of Object.entries(msg.headers)) {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `<td>${escapeHtml(k)}</td><td>${escapeHtml(v)}</td>`;
+              tbody.appendChild(tr);
+            }
+          } else {
+            tbody.innerHTML = '<tr><td colspan="2" style="color: var(--text-dim); text-align: center;">No headers provided.</td></tr>';
+          }
         }
       }
 
       function handleClientChunk(msg) {
-        const transfer = activeTransfers.get(msg.id);
-        if (!transfer) return;
-
         const sliceBytes = base64ToUint8(msg.data);
-        transfer.chunks[msg.chunkIndex] = sliceBytes;
-        transfer.receivedCount++;
 
-        const receivedBytes = transfer.chunks.reduce((acc, c) => acc + (c ? c.byteLength : 0), 0);
-        updateProgressBar(transfer.receivedCount, transfer.metadata.totalChunks, receivedBytes);
+        // Update active download task if matching
+        if (activeDownloadTask && activeDownloadTask.id === msg.id) {
+          activeDownloadTask.chunks[msg.chunkIndex] = sliceBytes;
+          activeDownloadTask.receivedBytes += sliceBytes.byteLength;
+          activeDownloadTask.receivedChunks++;
+
+          // Calculate real-time speed & ETA
+          const now = Date.now();
+          const dt = (now - activeDownloadTask.lastTick) / 1000;
+          if (dt >= 0.25) {
+            const bytesDelta = activeDownloadTask.receivedBytes - activeDownloadTask.lastBytes;
+            const currentSpeed = bytesDelta / dt;
+            activeDownloadTask.speed = currentSpeed;
+            activeDownloadTask.lastTick = now;
+            activeDownloadTask.lastBytes = activeDownloadTask.receivedBytes;
+
+            const speedEl = document.getElementById('active-dl-speed');
+            if (speedEl) speedEl.textContent = `⚡ ${formatBytes(currentSpeed)}/s`;
+
+            const etaEl = document.getElementById('active-dl-eta');
+            if (etaEl) {
+              if (activeDownloadTask.totalBytes > activeDownloadTask.receivedBytes && currentSpeed > 0) {
+                const remainingSec = Math.max(1, Math.round((activeDownloadTask.totalBytes - activeDownloadTask.receivedBytes) / currentSpeed));
+                etaEl.textContent = `⏱ ~${remainingSec}s left`;
+              } else if (activeDownloadTask.totalBytes > 0) {
+                etaEl.textContent = 'finalizing...';
+              }
+            }
+          }
+
+          // Update progress bar
+          const fill = document.getElementById('active-dl-fill');
+          const bytesText = document.getElementById('active-dl-bytes');
+          const chunksText = document.getElementById('active-dl-chunks');
+
+          let pct = 0;
+          if (activeDownloadTask.totalBytes > 0) {
+            pct = Math.min(100, Math.round((activeDownloadTask.receivedBytes / activeDownloadTask.totalBytes) * 100));
+          } else if (activeDownloadTask.totalChunks > 0) {
+            pct = Math.min(100, Math.round((activeDownloadTask.receivedChunks / activeDownloadTask.totalChunks) * 100));
+          } else {
+            pct = Math.min(95, activeDownloadTask.receivedChunks % 100);
+          }
+
+          if (fill) fill.style.width = `${pct}%`;
+          if (bytesText) {
+            bytesText.textContent = `${formatBytes(activeDownloadTask.receivedBytes)} / ${activeDownloadTask.totalBytes > 0 ? formatBytes(activeDownloadTask.totalBytes) : 'streaming'} (${pct}%)`;
+          }
+          if (chunksText) {
+            chunksText.textContent = `${activeDownloadTask.receivedChunks} chunks received`;
+          }
+        }
+
+        // Also update standard transfer tracking
+        const transfer = activeTransfers.get(msg.id);
+        if (transfer) {
+          transfer.chunks[msg.chunkIndex] = sliceBytes;
+          transfer.receivedCount++;
+          transfer.receivedBytes = (transfer.receivedBytes || 0) + sliceBytes.byteLength;
+
+          if (!msg.isDownload) {
+            updateProgressBar(transfer.receivedCount, transfer.metadata.totalChunks, transfer.receivedBytes);
+          }
+        }
       }
 
       function updateProgressBar(received, total, bytes) {
         const fill = document.getElementById('progress-fill');
         const numText = document.getElementById('progress-numbers');
         const pct = total > 0 ? Math.round((received / total) * 100) : 0;
-        fill.style.width = `${pct}%`;
-        numText.textContent = `${received} / ${total} chunks (${formatBytes(bytes)})`;
+        if (fill) fill.style.width = `${pct}%`;
+        if (numText) numText.textContent = `${received} / ${total} chunks (${formatBytes(bytes)})`;
       }
 
       function handleClientEnd(msg) {
         const transfer = activeTransfers.get(msg.id);
-        if (!transfer) return;
+        const duration = transfer ? Date.now() - transfer.startTime : 100;
 
-        const duration = Date.now() - transfer.startTime;
-        document.getElementById('resp-time-stat').textContent = `Duration: ${duration} ms`;
+        // 1. If this was a file download
+        if (activeDownloadTask && activeDownloadTask.id === msg.id) {
+          const dlTask = activeDownloadTask;
+          const blob = new Blob(dlTask.chunks.filter(Boolean), { type: dlTask.mimeType });
+          currentResponseBlob = blob;
 
-        // Hide progress box after short delay
-        setTimeout(() => {
-          document.getElementById('transfer-progress-box').style.display = 'none';
-        }, 600);
+          // Update UI state
+          const fill = document.getElementById('active-dl-fill');
+          const statusEl = document.getElementById('active-dl-status');
+          const speedEl = document.getElementById('active-dl-speed');
+          const etaEl = document.getElementById('active-dl-eta');
 
-        // Reassemble Blob
-        const blob = new Blob(transfer.chunks, { type: transfer.metadata.mimeType });
-        currentResponseBlob = blob;
+          if (fill) fill.style.width = '100%';
+          if (statusEl) statusEl.textContent = '✓ Transfer Complete!';
+          const avgSpeed = formatBytes(blob.size / (duration / 1000 || 1)) + '/s';
+          if (speedEl) speedEl.textContent = `Avg: ${avgSpeed}`;
+          if (etaEl) etaEl.textContent = `Finished in ${duration}ms`;
+
+          // Auto-save directly to Downloads folder
+          if (dlTask.autoSave) {
+            saveBlobToDisk(blob, dlTask.filename);
+            showToast(`Saved "${dlTask.filename}" to your Downloads!`, 4000);
+          } else {
+            showToast(`Download of "${dlTask.filename}" ready!`, 3000);
+          }
+
+          // Store in completed shelf
+          const completedItem = {
+            id: dlTask.id,
+            filename: dlTask.filename,
+            mimeType: dlTask.mimeType,
+            totalBytes: blob.size,
+            blob: blob,
+            url: dlTask.url,
+            timestamp: new Date().toLocaleTimeString(),
+            duration: duration,
+            speed: avgSpeed,
+          };
+          completedDownloads.unshift(completedItem);
+          renderCompletedShelf();
+
+          log('DATA', `Completed download of ${dlTask.filename} (${formatBytes(blob.size)}) in ${duration}ms at ${avgSpeed}`);
+
+          // Hide active download card after 3 seconds
+          setTimeout(() => {
+            const dlContainer = document.getElementById('active-download-container');
+            if (dlContainer && (!activeDownloadTask || activeDownloadTask.id === dlTask.id)) {
+              dlContainer.style.display = 'none';
+              activeDownloadTask = null;
+            }
+          }, 3000);
+        }
+
+        // 2. Standard Browser Mode Request
+        if (transfer && !msg.isDownload) {
+          const respTimeStat = document.getElementById('resp-time-stat');
+          if (respTimeStat) respTimeStat.textContent = `Duration: ${duration} ms`;
+
+          setTimeout(() => {
+            const pb = document.getElementById('transfer-progress-box');
+            if (pb) pb.style.display = 'none';
+          }, 600);
+
+          const blob = new Blob(transfer.chunks.filter(Boolean), { type: transfer.metadata.mimeType });
+          currentResponseBlob = blob;
+
+          log('DATA', `Reassembled complete Blob (${formatBytes(blob.size)}) in ${duration}ms. Rendering output...`);
+          renderResponse(blob, transfer.metadata.mimeType, transfer.metadata.url);
+          showToast('Resource received and reassembled!');
+        }
+
         activeTransfers.delete(msg.id);
-
-        log('DATA', `Reassembled complete Blob (${formatBytes(blob.size)}) in ${duration}ms. Rendering output...`);
-        renderResponse(blob, transfer.metadata.mimeType, transfer.metadata.url);
-        showToast('Resource received and reassembled!');
       }
 
       function handleClientError(msg) {
         log('ERROR', `Relay Error for ${msg.url}: ${msg.error}`);
-        document.getElementById('transfer-progress-box').style.display = 'none';
+        const progressBox = document.getElementById('transfer-progress-box');
+        if (progressBox) progressBox.style.display = 'none';
+
+        if (activeDownloadTask && activeDownloadTask.id === msg.id) {
+          const statusEl = document.getElementById('active-dl-status');
+          if (statusEl) {
+            statusEl.textContent = `Download Failed: ${msg.error}`;
+            statusEl.style.color = '#f87171';
+          }
+          showToast(`Download failed: ${msg.error}`, 4000);
+          setTimeout(() => {
+            const dlContainer = document.getElementById('active-download-container');
+            if (dlContainer) dlContainer.style.display = 'none';
+            activeDownloadTask = null;
+          }, 4000);
+          return;
+        }
 
         const badge = document.getElementById('resp-status-badge');
-        badge.className = 'status-code-badge err';
-        badge.textContent = 'RELAY ERROR';
+        if (badge) {
+          badge.className = 'status-code-badge err';
+          badge.textContent = 'RELAY ERROR';
+        }
 
         const previewContainer = document.getElementById('preview-container');
-        previewContainer.innerHTML = `
-          <div style="padding: 24px; text-align: center; color: #f87171;">
-            <div style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">Request Failed Through Proxy</div>
-            <div style="font-size: 12px; color: var(--text-muted); max-width: 480px; margin: 0 auto;">
-              ${escapeHtml(msg.error)}
+        if (previewContainer) {
+          previewContainer.innerHTML = `
+            <div style="padding: 24px; text-align: center; color: #f87171;">
+              <div style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">Request Failed Through Proxy</div>
+              <div style="font-size: 12px; color: var(--text-muted); max-width: 480px; margin: 0 auto;">
+                ${escapeHtml(msg.error)}
+              </div>
+              <div style="font-size: 11px; color: var(--text-dim); margin-top: 12px;">
+                Tip: If requesting external sites, ensure the target API permits CORS or requests allow origin.
+              </div>
             </div>
-            <div style="font-size: 11px; color: var(--text-dim); margin-top: 12px;">
-              Tip: If requesting external sites, ensure the target API permits CORS or requests allow origin.
-            </div>
-          </div>
-        `;
+          `;
+        }
 
-        document.getElementById('raw-output-box').textContent = `ERROR: ${msg.error}`;
+        const rawOutput = document.getElementById('raw-output-box');
+        if (rawOutput) rawOutput.textContent = `ERROR: ${msg.error}`;
       }
 
       function renderResponse(blob, mimeType, url) {
@@ -2622,6 +3378,125 @@
           document.getElementById('form-fetch-request').dispatchEvent(new Event('submit'));
         });
       });
+
+      // --- WORKSPACE MODE SWITCHER (BROWSER vs DOWNLOADER) ---
+      const btnModeBrowser = document.getElementById('btn-mode-browser');
+      const btnModeDownloader = document.getElementById('btn-mode-downloader');
+      const sectionBrowser = document.getElementById('section-browser-mode');
+      const sectionDownloader = document.getElementById('section-downloader-mode');
+
+      if (btnModeBrowser && btnModeDownloader) {
+        btnModeBrowser.addEventListener('click', () => {
+          btnModeBrowser.classList.add('active');
+          btnModeDownloader.classList.remove('active');
+          if (sectionBrowser) sectionBrowser.style.display = 'flex';
+          if (sectionDownloader) sectionDownloader.style.display = 'none';
+        });
+
+        btnModeDownloader.addEventListener('click', () => {
+          btnModeDownloader.classList.add('active');
+          btnModeBrowser.classList.remove('active');
+          if (sectionDownloader) sectionDownloader.style.display = 'flex';
+          if (sectionBrowser) sectionBrowser.style.display = 'none';
+        });
+      }
+
+      // --- DEDICATED FILE DOWNLOADER FORM SUBMISSION ---
+      const formDownload = document.getElementById('form-file-download');
+      if (formDownload) {
+        formDownload.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const urlInput = document.getElementById('download-url-input');
+          const customNameInput = document.getElementById('custom-filename-input');
+          const chkAutoSave = document.getElementById('chk-auto-save');
+
+          const downloadUrl = urlInput ? urlInput.value.trim() : '';
+          const customName = customNameInput ? customNameInput.value.trim() : '';
+          const autoSave = chkAutoSave ? chkAutoSave.checked : true;
+
+          if (!downloadUrl) return;
+
+          if (!dataChannel || dataChannel.readyState !== 'open') {
+            alert('WebRTC DataChannel is not open! Please establish peer connection with the Host first.');
+            return;
+          }
+
+          pendingDownloadOptions = {
+            autoSave,
+            customFilename: customName,
+          };
+
+          const reqId = 'dl-' + Math.random().toString(36).substring(2, 9);
+          log('DATA', `Client starting file download: ${downloadUrl} (ID: ${reqId})`);
+
+          // Show initial download container
+          const dlContainer = document.getElementById('active-download-container');
+          if (dlContainer) {
+            dlContainer.style.display = 'block';
+            document.getElementById('active-dl-name').textContent = customName || extractFilename(null, downloadUrl);
+            document.getElementById('active-dl-status').textContent = 'Requesting file from Host Gateway...';
+            document.getElementById('active-dl-fill').style.width = '5%';
+            document.getElementById('active-dl-speed').textContent = 'connecting...';
+            document.getElementById('active-dl-eta').textContent = 'awaiting host...';
+          }
+
+          const reqMsg = JSON.stringify({
+            id: reqId,
+            type: 'FETCH_REQUEST',
+            method: 'GET',
+            url: downloadUrl,
+            headers: {
+              'Accept': '*/*',
+            },
+            isDownload: true,
+            customFilename: customName,
+          });
+
+          dataChannel.send(reqMsg);
+          showToast(`Download request dispatched to Host Gateway!`);
+        });
+      }
+
+      // Download Presets
+      document.querySelectorAll('.dl-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const url = btn.dataset.url;
+          const filename = btn.dataset.name || '';
+          const urlInput = document.getElementById('download-url-input');
+          const customNameInput = document.getElementById('custom-filename-input');
+          if (urlInput) urlInput.value = url;
+          if (customNameInput) customNameInput.value = filename;
+          
+          if (formDownload) {
+            formDownload.dispatchEvent(new Event('submit'));
+          }
+        });
+      });
+
+      // Cancel Active Download
+      const btnCancelDl = document.getElementById('btn-cancel-download');
+      if (btnCancelDl) {
+        btnCancelDl.addEventListener('click', () => {
+          if (activeDownloadTask) {
+            log('WARN', `Cancelled download of ${activeDownloadTask.filename}`);
+            activeTransfers.delete(activeDownloadTask.id);
+            activeDownloadTask = null;
+            const dlContainer = document.getElementById('active-download-container');
+            if (dlContainer) dlContainer.style.display = 'none';
+            showToast('Download cancelled by user.');
+          }
+        });
+      }
+
+      // Clear Downloads Shelf
+      const btnClearShelf = document.getElementById('btn-clear-downloads-shelf');
+      if (btnClearShelf) {
+        btnClearShelf.addEventListener('click', () => {
+          completedDownloads = [];
+          renderCompletedShelf();
+          showToast('Completed downloads shelf cleared');
+        });
+      }
 
       // Tab Switching in Response Viewer
       document.querySelectorAll('.tab-btn').forEach(btn => {
