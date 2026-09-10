@@ -1,0 +1,10 @@
+{
+  "name": "AirBridge WebRTC Proxy",
+  "description": "Zero-backend serverless WebRTC P2P HTTP proxy enabling offline devices to fetch internet resources via QR code signaling and DataChannels.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

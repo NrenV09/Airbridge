@@ -1,0 +1,2687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AirBridge WebRTC Proxy</title>
+  <meta name="description" content="Zero-backend serverless WebRTC P2P HTTP proxy enabling offline devices to fetch internet resources via QR code signaling and DataChannels." />
+
+  <!-- Lightweight CDN Libraries -->
+  <!-- QR Code Generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- QR Code Scanner -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <!-- Pako Deflate/Inflate for high-density QR compression -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+
+  <style>
+    :root {
+      --bg-main: #090d16;
+      --bg-panel: rgba(17, 24, 39, 0.75);
+      --bg-panel-solid: #111827;
+      --bg-card: rgba(30, 41, 59, 0.55);
+      --bg-input: #0f172a;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: #3b82f6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+      background-color: var(--bg-main);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.06) 0%, transparent 45%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Glassmorphic Panel */
+    .glass-panel {
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+    }
+
+    /* Header */
+    header {
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.35);
+    }
+
+    .logo-icon svg {
+      width: 20px;
+      height: 20px;
+      color: #fff;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .role-badge.host {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.35);
+      color: #93c5fd;
+    }
+
+    .role-badge.client {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: #6ee7b7;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      transition: background 0.3s ease;
+    }
+
+    .status-dot.active {
+      background: var(--accent-emerald);
+      box-shadow: 0 0 10px var(--accent-emerald);
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.handshake {
+      background: var(--accent-amber);
+      box-shadow: 0 0 10px var(--accent-amber);
+      animation: pulse 1s infinite;
+    }
+
+    .status-dot.disconnected {
+      background: var(--accent-rose);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.9); }
+    }
+
+    .latency-pill {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.1);
+      padding: 2px 7px;
+      border-radius: 9999px;
+      border: 1px solid rgba(6, 182, 212, 0.25);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border-color: #3b82f6;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border-subtle);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .btn-emerald {
+      background: linear-gradient(135deg, #059669, #047857);
+      border-color: #10b981;
+    }
+
+    .btn-emerald:hover {
+      background: linear-gradient(135deg, #047857, #065f46);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-icon {
+      padding: 7px 9px;
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 20px 80px;
+    }
+
+    /* Views */
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* View: Role Select */
+    .hero-banner {
+      text-align: center;
+      margin-bottom: 36px;
+      padding: 24px 0 12px;
+    }
+
+    .hero-title {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .hero-desc {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .role-card {
+      padding: 30px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid var(--border-subtle);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .role-card:hover {
+      border-color: rgba(59, 130, 246, 0.4);
+      transform: translateY(-3px);
+      box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.6);
+    }
+
+    .role-card.host-card:hover {
+      border-color: rgba(59, 130, 246, 0.6);
+    }
+
+    .role-card.client-card:hover {
+      border-color: rgba(16, 185, 129, 0.6);
+    }
+
+    .role-icon-box {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .host-card .role-icon-box {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .client-card .role-icon-box {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .role-card-title {
+      font-size: 19px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .role-card-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .role-feature-list {
+      list-style: none;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .role-feature-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .role-feature-item svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      color: var(--accent-cyan);
+    }
+
+    /* View: Signaling Wizard */
+    .wizard-card {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .wizard-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .step-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .step-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .wizard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+
+    @media (max-width: 768px) {
+      .wizard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .qr-container-card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-box {
+      background: #ffffff;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      display: inline-block;
+      margin-bottom: 14px;
+    }
+
+    .qr-box img {
+      display: block;
+      margin: 0 auto;
+    }
+
+    .scanner-viewfinder {
+      background: #000;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      position: relative;
+      width: 100%;
+      min-height: 270px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    #qr-reader {
+      width: 100%;
+      border: none !important;
+    }
+
+    #qr-reader__scan_region {
+      background: transparent !important;
+    }
+
+    .scanner-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    .scanner-controls select {
+      flex: 1;
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      padding: 6px 10px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+    }
+
+    .token-preview {
+      width: 100%;
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 8px;
+      color: var(--text-muted);
+      height: 60px;
+      overflow-y: auto;
+      resize: none;
+      margin-top: 10px;
+      word-break: break-all;
+    }
+
+    /* Active Workspace */
+    .workspace-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Client Address Bar */
+    .address-bar-card {
+      padding: 16px;
+    }
+
+    .address-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 4px 6px;
+      transition: border-color 0.2s ease;
+    }
+
+    .address-bar:focus-within {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+    .method-select {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: #60a5fa;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      outline: none;
+    }
+
+    .url-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 13px;
+      padding: 6px 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .url-input::placeholder {
+      color: var(--text-dim);
+    }
+
+    .preset-chips {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .preset-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .preset-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      padding: 4px 9px;
+      border-radius: 9999px;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-chip:hover {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.4);
+      color: #93c5fd;
+    }
+
+    /* Transfer Progress */
+    .transfer-progress-card {
+      display: none;
+      padding: 14px 18px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: var(--radius-md);
+      animation: fadeIn 0.2s;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #06b6d4);
+      border-radius: 9999px;
+      transition: width 0.15s ease;
+    }
+
+    /* Response Viewer */
+    .response-card {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .response-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+    }
+
+    .response-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-code-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+    }
+
+    .status-code-badge.s2xx {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .status-code-badge.s4xx, .status-code-badge.s5xx, .status-code-badge.err {
+      background: rgba(244, 63, 94, 0.2);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.4);
+    }
+
+    .response-stat {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .response-tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      border-color: var(--accent-blue);
+    }
+
+    .tab-content {
+      display: none;
+      min-height: 240px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .rendered-preview-container {
+      background: #000;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      min-height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-subtle);
+      position: relative;
+    }
+
+    .rendered-preview-container img {
+      max-width: 100%;
+      max-height: 480px;
+      object-fit: contain;
+      border-radius: var(--radius-sm);
+    }
+
+    .rendered-preview-container iframe {
+      width: 100%;
+      height: 440px;
+      border: none;
+      background: #fff;
+    }
+
+    .raw-code-box {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      color: #cbd5e1;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      max-height: 420px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .headers-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      font-family: ui-monospace, monospace;
+    }
+
+    .headers-table th, .headers-table td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .headers-table th {
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .headers-table td:first-child {
+      color: var(--accent-cyan);
+      width: 35%;
+      font-weight: 500;
+    }
+
+    .headers-table td:last-child {
+      color: var(--text-muted);
+    }
+
+    /* Host Gateway Panel */
+    .host-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .metric-card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+
+    .metric-title {
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      font-family: ui-monospace, monospace;
+    }
+
+    .metric-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .relay-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .relay-table th, .relay-table td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .relay-table th {
+      background: rgba(15, 23, 42, 0.5);
+      color: var(--text-dim);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .relay-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Terminal Log Drawer */
+    .terminal-drawer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(10, 15, 26, 0.96);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border-subtle);
+      z-index: 50;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateY(calc(100% - 36px));
+    }
+
+    .terminal-drawer.open {
+      transform: translateY(0);
+    }
+
+    .terminal-header {
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(17, 24, 39, 0.8);
+    }
+
+    .terminal-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: ui-monospace, monospace;
+    }
+
+    .log-count-badge {
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+      padding: 1px 6px;
+      border-radius: 9999px;
+      font-size: 10px;
+    }
+
+    .terminal-body {
+      height: 220px;
+      overflow-y: auto;
+      padding: 12px 18px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .log-line {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .log-time {
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .log-tag {
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .log-tag.info { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .log-tag.ice { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+    .log-tag.data { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .log-tag.warn { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .log-tag.error { background: rgba(244, 63, 94, 0.2); color: #f87171; }
+
+    .log-msg {
+      color: #e2e8f0;
+      word-break: break-all;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 540px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      top: 68px;
+      right: 20px;
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 16px;
+      font-size: 12px;
+      color: #fff;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateY(-20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      z-index: 110;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header>
+    <div class="header-content">
+      <div class="logo-group" id="btn-logo-home" title="Return to Role Selection">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 11a9 9 0 0 1 9 9"></path>
+            <path d="M4 4a16 16 0 0 1 16 16"></path>
+            <circle cx="5" cy="19" r="1"></circle>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">
+            AirBridge <span style="font-size: 11px; font-weight: 600; color: var(--accent-cyan); background: rgba(6, 182, 212, 0.15); padding: 1px 6px; border-radius: 4px;">P2P Proxy</span>
+          </div>
+          <div class="brand-subtitle">Serverless QR-Signaled WebRTC Relay</div>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <span class="role-badge" id="header-role-badge">Node Unselected</span>
+        <div class="status-pill" id="header-status-pill">
+          <span class="status-dot disconnected" id="status-dot"></span>
+          <span id="status-text">Disconnected</span>
+          <span class="latency-pill" id="latency-display" style="display: none;">0 ms</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-secondary" id="btn-export-html" title="Download standalone single-file index.html to copy to offline devices via USB/Airdrop">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Export HTML</span>
+        </button>
+
+        <button class="btn btn-secondary btn-icon" id="btn-toggle-terminal" title="Toggle Event Console">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 17 10 11 4 5"></polyline>
+            <line x1="12" y1="19" x2="20" y2="19"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast-notify">
+    <span id="toast-text">Message</span>
+  </div>
+
+  <!-- Main Views Container -->
+  <main>
+    
+    <!-- VIEW 1: Role Selection Screen -->
+    <div class="view active" id="view-role-select">
+      <div class="hero-banner">
+        <h1 class="hero-title">Zero-Backend WebRTC Internet Proxy</h1>
+        <p class="hero-desc">
+          Share internet access from an online computer to an offline phone or laptop using a direct, local P2P WebRTC DataChannel. Initial signaling is exchanged completely offline via QR codes.
+        </p>
+      </div>
+
+      <div class="role-grid">
+        <!-- Host Card -->
+        <div class="glass-panel role-card host-card" id="card-select-host">
+          <div>
+            <div class="role-icon-box">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+            </div>
+            <h2 class="role-card-title">Host Gateway (Online)</h2>
+            <p class="role-card-subtitle">
+              Choose this on the computer with an active Internet connection (Wi-Fi, Ethernet, or 5G/4G).
+            </p>
+            <ul class="role-feature-list">
+              <li class="role-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Generates compressed SDP Offer QR Code
+              </li>
+              <li class="role-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Scans Client's Answer QR to bind the P2P tunnel
+              </li>
+              <li class="role-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Executes web requests and streams chunked responses
+              </li>
+            </ul>
+          </div>
+          <button class="btn btn-primary" style="width: 100%;">
+            <span>Launch as Host Gateway</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+
+        <!-- Client Card -->
+        <div class="glass-panel role-card client-card" id="card-select-client">
+          <div>
+            <div class="role-icon-box">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+              </svg>
+            </div>
+            <h2 class="role-card-title">Client Node (Offline)</h2>
+            <p class="role-card-subtitle">
+              Choose this on the phone, tablet, or laptop connected to the local Wi-Fi or Hotspot without internet.
+            </p>
+            <ul class="role-feature-list">
+              <li class="role-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Scans the Host's Offer QR code with device camera
+              </li>
+              <li class="role-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Generates compressed SDP Answer QR code
+              </li>
+              <li class="role-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                In-app HTTP browser to fetch web pages, APIs, and media
+              </li>
+            </ul>
+          </div>
+          <button class="btn btn-emerald" style="width: 100%;">
+            <span>Launch as Offline Client</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: Signaling Wizard (QR Exchange) -->
+    <div class="view" id="view-signaling">
+      <div class="glass-panel wizard-card">
+        <div class="wizard-header">
+          <div class="step-indicator">
+            <div class="step-badge" id="wizard-step-num">1</div>
+            <div>
+              <div class="step-title" id="wizard-step-title">Offline Signaling Handshake</div>
+              <div class="step-desc" id="wizard-step-desc">Establish WebRTC P2P connection via camera and QR codes</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" id="btn-manual-token-modal">Manual Token Fallback</button>
+            <button class="btn btn-secondary" id="btn-abort-wizard">Cancel</button>
+          </div>
+        </div>
+
+        <div class="wizard-grid">
+          <!-- Left Column: Display QR Code -->
+          <div class="qr-container-card">
+            <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px; color: #fff;" id="qr-panel-title">
+              Signaling QR Code
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 14px;" id="qr-panel-subtitle">
+              Generating minified local candidates...
+            </div>
+
+            <div class="qr-box">
+              <div id="qrcode-display" style="width: 250px; height: 250px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 12px; color: #64748b;">Initializing QR...</span>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; width: 100%; justify-content: center; margin-top: 6px;">
+              <button class="btn btn-secondary" id="btn-copy-token">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <span>Copy Token</span>
+              </button>
+              <button class="btn btn-secondary" id="btn-download-qr">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Save Image</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Column: Camera Scanner Viewfinder -->
+          <div class="qr-container-card" style="justify-content: flex-start;">
+            <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px; color: #fff;" id="scanner-panel-title">
+              Scan Peer QR Code
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 14px;" id="scanner-panel-subtitle">
+              Align camera with peer device's QR code
+            </div>
+
+            <div class="scanner-viewfinder">
+              <div id="qr-reader"></div>
+            </div>
+
+            <div class="scanner-controls">
+              <select id="camera-select">
+                <option value="">Select Camera...</option>
+              </select>
+              <button class="btn btn-secondary btn-icon" id="btn-flip-camera" title="Flip Camera">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+              </button>
+            </div>
+
+            <!-- Manual Text Entering Box Below Scanner -->
+            <div class="manual-input-box-container" style="width: 100%; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-subtle); text-align: left;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <label for="manual-peer-token-input" style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; gap: 5px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  Manual Text Entering Box
+                </label>
+                <button type="button" class="btn btn-secondary" id="btn-paste-clipboard" style="padding: 2px 8px; font-size: 10px;" title="Paste from clipboard">
+                  Paste
+                </button>
+              </div>
+              <textarea 
+                id="manual-peer-token-input" 
+                class="token-preview" 
+                style="height: 72px; margin-top: 0; font-size: 11px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.12);" 
+                placeholder="Paste or type peer token (e.g. AIR:O:... or AIR:A:...) or raw SDP JSON here..."
+              ></textarea>
+              <div style="display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" id="btn-clear-manual-input" style="padding: 5px 10px; font-size: 11px;">
+                  Clear
+                </button>
+                <button type="button" class="btn btn-primary" id="btn-apply-manual-token" style="padding: 5px 12px; font-size: 11px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span>Apply Token</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: Active Workspace (P2P Connected) -->
+    <div class="view" id="view-workspace">
+      
+      <!-- CLIENT WORKSPACE -->
+      <div id="client-workspace" class="workspace-wrapper" style="display: none;">
+        
+        <!-- Address Bar Card -->
+        <div class="glass-panel address-bar-card">
+          <form id="form-fetch-request">
+            <div class="address-bar">
+              <select class="method-select" id="http-method">
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+                <option value="HEAD">HEAD</option>
+              </select>
+              <input 
+                type="url" 
+                class="url-input" 
+                id="http-url" 
+                placeholder="Enter resource URL (e.g. https://dummyjson.com/quotes/random)"
+                value="https://dummyjson.com/quotes/random"
+                required
+              />
+              <button type="submit" class="btn btn-primary" id="btn-send-fetch">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                <span>Tunnel Fetch</span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Preset Quick Links -->
+          <div class="preset-chips">
+            <span class="preset-label">Test Presets:</span>
+            <button class="preset-chip" data-url="https://dummyjson.com/quotes/random">Quote API (JSON)</button>
+            <button class="preset-chip" data-url="https://catfact.ninja/fact">Cat Facts API</button>
+            <button class="preset-chip" data-url="https://api.ipify.org?format=json">IP Geolocation</button>
+            <button class="preset-chip" data-url="https://picsum.photos/400/300">Random Image (JPEG)</button>
+            <button class="preset-chip" data-url="https://en.wikipedia.org/api/rest_v1/page/summary/WebRTC">Wikipedia WebRTC</button>
+          </div>
+        </div>
+
+        <!-- Transfer Progress Indicator -->
+        <div class="transfer-progress-card" id="transfer-progress-box">
+          <div class="progress-info">
+            <span id="progress-status-text">Relaying request chunks over DataChannel...</span>
+            <span id="progress-numbers">0 / 0 chunks (0 KB)</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+          </div>
+        </div>
+
+        <!-- Response Viewer -->
+        <div class="glass-panel response-card" id="response-viewer-card">
+          <div class="response-header">
+            <div class="response-meta">
+              <span class="status-code-badge s2xx" id="resp-status-badge">Ready</span>
+              <span class="response-stat" id="resp-time-stat">Latency: --</span>
+              <span class="response-stat" id="resp-size-stat">Size: --</span>
+              <span class="response-stat" id="resp-mime-stat">Type: --</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary" id="btn-copy-response">Copy Text</button>
+              <button class="btn btn-secondary" id="btn-download-response">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Save File</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="response-tabs">
+            <button class="tab-btn active" data-tab="tab-rendered">Rendered Preview</button>
+            <button class="tab-btn" data-tab="tab-raw">Raw Text / JSON</button>
+            <button class="tab-btn" data-tab="tab-headers">Headers</button>
+          </div>
+
+          <!-- Tab 1: Rendered Output -->
+          <div class="tab-content active" id="tab-rendered">
+            <div class="rendered-preview-container" id="preview-container">
+              <span style="color: var(--text-dim); font-size: 13px;">Execute a request above to render the response preview.</span>
+            </div>
+          </div>
+
+          <!-- Tab 2: Raw Code Output -->
+          <div class="tab-content" id="tab-raw">
+            <pre class="raw-code-box" id="raw-output-box">// Response payload will appear here...</pre>
+          </div>
+
+          <!-- Tab 3: Response Headers -->
+          <div class="tab-content" id="tab-headers">
+            <div style="max-height: 380px; overflow-y: auto;">
+              <table class="headers-table">
+                <thead>
+                  <tr>
+                    <th>Header</th>
+                    <th>Value</th>
+                  </tr>
+                </thead>
+                <tbody id="headers-tbody">
+                  <tr>
+                    <td colspan="2" style="color: var(--text-dim); text-align: center;">No headers loaded yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HOST WORKSPACE -->
+      <div id="host-workspace" class="workspace-wrapper" style="display: none;">
+        
+        <!-- Throughput Stats Grid -->
+        <div class="host-metrics-grid">
+          <div class="metric-card">
+            <div class="metric-title">Requests Relayed</div>
+            <div class="metric-value" id="host-metric-requests">0</div>
+            <div class="metric-sub">P2P Inbound Requests</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">Total Bandwidth</div>
+            <div class="metric-value" id="host-metric-bytes">0 KB</div>
+            <div class="metric-sub">Relayed Across Channel</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">P2P Latency (RTT)</div>
+            <div class="metric-value" id="host-metric-rtt">0 ms</div>
+            <div class="metric-sub">3s Heartbeat Ping</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">Channel State</div>
+            <div class="metric-value" style="color: var(--accent-emerald);" id="host-metric-state">OPEN</div>
+            <div class="metric-sub">WebRTC DataChannel</div>
+          </div>
+        </div>
+
+        <!-- Relay Monitor Table -->
+        <div class="glass-panel" style="padding: 20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div>
+              <h2 style="font-size: 15px; font-weight: 700; color: #fff;">Inbound Relay Monitor</h2>
+              <p style="font-size: 12px; color: var(--text-muted);">Real-time feed of HTTP requests fetched on behalf of the client peer</p>
+            </div>
+            <button class="btn btn-secondary" id="btn-clear-relay-history">Clear Feed</button>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="relay-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Method</th>
+                  <th>Target URL</th>
+                  <th>Status</th>
+                  <th>Chunks</th>
+                  <th>Size</th>
+                  <th>Duration</th>
+                </tr>
+              </thead>
+              <tbody id="relay-table-tbody">
+                <tr id="relay-empty-row">
+                  <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 30px;">
+                    Waiting for peer requests... Client requests will appear here in real-time.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Terminal Event Console (Collapsible Bottom Drawer) -->
+  <div class="terminal-drawer" id="terminal-drawer">
+    <div class="terminal-header" id="terminal-toggle-bar">
+      <div class="terminal-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+        <span>AirBridge Event Console</span>
+        <span class="log-count-badge" id="log-count-badge">0 events</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button class="btn btn-secondary" id="btn-clear-logs" style="padding: 3px 8px; font-size: 10px;">Clear</button>
+        <span style="font-size: 11px; color: var(--text-dim);" id="terminal-chevron">▲ Expand</span>
+      </div>
+    </div>
+    <div class="terminal-body" id="terminal-body">
+      <!-- Live logs appended here -->
+    </div>
+  </div>
+
+  <!-- Modal: Manual SDP Token Fallback -->
+  <div class="modal-overlay" id="manual-token-modal">
+    <div class="glass-panel modal-card">
+      <div class="modal-title">Manual Signaling Token Exchange</div>
+      <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+        If a device lacks a camera or browser webcam permissions, copy the token below and paste it into the other device manually.
+      </p>
+
+      <div>
+        <label style="font-size: 11px; font-weight: 600; color: var(--text-dim); display: block; margin-bottom: 4px;">YOUR LOCAL TOKEN (Copy this to the other device):</label>
+        <textarea class="token-preview" id="modal-my-token" readonly></textarea>
+        <button class="btn btn-secondary" id="btn-modal-copy" style="margin-top: 6px; width: 100%;">Copy My Token</button>
+      </div>
+
+      <div style="margin-top: 10px;">
+        <label style="font-size: 11px; font-weight: 600; color: var(--text-dim); display: block; margin-bottom: 4px;">PASTE PEER TOKEN HERE:</label>
+        <textarea class="token-preview" id="modal-peer-token" placeholder="Paste the token from the other device here..."></textarea>
+      </div>
+
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px;">
+        <button class="btn btn-secondary" id="btn-modal-close">Close</button>
+        <button class="btn btn-primary" id="btn-modal-apply">Apply Remote Token</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC SCRIPT -->
+  <script>
+    (function () {
+      'use strict';
+
+      // --- APPLICATION STATE ---
+      let currentRole = null; // 'host' | 'client' | null
+      let peerConnection = null;
+      let dataChannel = null;
+      let html5QrScanner = null;
+      let selectedCameraId = null;
+      let isScanning = false;
+      let pingIntervalId = null;
+      let activeTransfers = new Map(); // id -> { metadata, chunks: [], receivedCount: 0, startTime }
+      let lastLatencyMs = 0;
+      let currentResponseBlob = null;
+      let currentResponseText = '';
+      let localSignalingToken = '';
+
+      // Host Stats
+      let hostStats = {
+        requestsRelayed: 0,
+        bytesRelayed: 0,
+        activeRequests: 0,
+      };
+
+      // Protocol constants
+      const CHUNK_SIZE = 16384; // 16 KB frames to strictly stay under 64 KB SCTP limit
+      const PING_INTERVAL = 3000; // 3 seconds heartbeat
+
+      // --- LOGGING UTILITIES ---
+      const terminalBody = document.getElementById('terminal-body');
+      const logCountBadge = document.getElementById('log-count-badge');
+      let logEntriesCount = 0;
+
+      function log(type, message) {
+        const time = new Date().toLocaleTimeString();
+        logEntriesCount++;
+        logCountBadge.textContent = `${logEntriesCount} events`;
+
+        const line = document.createElement('div');
+        line.className = 'log-line';
+        line.innerHTML = `
+          <span class="log-time">[${time}]</span>
+          <span class="log-tag ${type.toLowerCase()}">${type}</span>
+          <span class="log-msg">${escapeHtml(message)}</span>
+        `;
+        terminalBody.appendChild(line);
+        terminalBody.scrollTop = terminalBody.scrollHeight;
+        console.log(`[AirBridge][${type}] ${message}`);
+      }
+
+      function showToast(text, duration = 3000) {
+        const toast = document.getElementById('toast-notify');
+        document.getElementById('toast-text').textContent = text;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), duration);
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+      }
+
+      // --- BASE64 & PAKO UTILITIES FOR HIGH-DENSITY SDP ---
+      function uint8ToBase64(uint8) {
+        let binary = '';
+        const chunkSize = 8192;
+        for (let i = 0; i < uint8.length; i += chunkSize) {
+          const chunk = uint8.subarray(i, i + chunkSize);
+          binary += String.fromCharCode.apply(null, chunk);
+        }
+        return btoa(binary);
+      }
+
+      function base64ToUint8(base64) {
+        const binary = atob(base64.trim());
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes;
+      }
+
+      // Minify SDP: Keep only local IPv4 host candidates and essential DataChannel SDP lines
+      function compressSDP(sdp) {
+        const lines = sdp.split(/\r?\n/);
+        const filtered = lines
+          .map(l => l.trim())
+          .filter(line => {
+            if (!line) return false;
+            if (line.startsWith('a=candidate:')) {
+              // Retain local host candidates only (LAN/Wi-Fi/Hotspot IP addresses or .local)
+              return line.includes('typ host');
+            }
+            return true;
+          })
+          .join('\r\n') + '\r\n';
+
+        if (typeof pako !== 'undefined') {
+          const deflated = pako.deflate(filtered);
+          return uint8ToBase64(deflated);
+        } else {
+          log('WARN', 'Pako library missing, falling back to raw Base64 SDP');
+          return btoa(filtered);
+        }
+      }
+
+      function decompressSDP(base64Str) {
+        base64Str = base64Str.trim();
+        if (typeof pako !== 'undefined') {
+          try {
+            const bytes = base64ToUint8(base64Str);
+            return pako.inflate(bytes, { to: 'string' });
+          } catch (e) {
+            log('WARN', 'Deflate inflate failed, attempting standard Base64 decode');
+            return atob(base64Str);
+          }
+        }
+        return atob(base64Str);
+      }
+
+      function createSignalingToken(type, sdp) {
+        const compressed = compressSDP(sdp);
+        const prefix = (type === 'offer') ? 'AIR:O:' : 'AIR:A:';
+        return prefix + compressed;
+      }
+
+      function parseSignalingToken(token) {
+        token = token.trim();
+        let type = null;
+        let sdp = null;
+
+        if (token.startsWith('AIR:O:')) {
+          type = 'offer';
+          sdp = decompressSDP(token.substring(6));
+        } else if (token.startsWith('AIR:A:')) {
+          type = 'answer';
+          sdp = decompressSDP(token.substring(6));
+        } else if (token.startsWith('{')) {
+          // Standard JSON fallback
+          const obj = JSON.parse(token);
+          type = obj.type;
+          sdp = obj.sdp;
+        } else {
+          // Auto-detect based on role
+          type = (currentRole === 'host') ? 'answer' : 'offer';
+          sdp = decompressSDP(token);
+        }
+
+        return { type, sdp };
+      }
+
+      // --- UI NAVIGATION & VIEWS ---
+      function switchView(viewId) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        const target = document.getElementById(viewId);
+        if (target) target.classList.add('active');
+      }
+
+      function updateRoleBadge(role) {
+        const badge = document.getElementById('header-role-badge');
+        badge.className = 'role-badge';
+        if (role === 'host') {
+          badge.classList.add('host');
+          badge.textContent = 'Host Gateway';
+        } else if (role === 'client') {
+          badge.classList.add('client');
+          badge.textContent = 'Offline Client';
+        } else {
+          badge.textContent = 'Node Unselected';
+        }
+      }
+
+      function updateConnectionStatus(state, label) {
+        const dot = document.getElementById('status-dot');
+        const text = document.getElementById('status-text');
+        dot.className = 'status-dot';
+
+        if (state === 'connected') {
+          dot.classList.add('active');
+          text.textContent = label || 'P2P Tunnel Active';
+        } else if (state === 'handshake') {
+          dot.classList.add('handshake');
+          text.textContent = label || 'Signaling Handshake';
+        } else {
+          dot.classList.add('disconnected');
+          text.textContent = label || 'Disconnected';
+        }
+      }
+
+      // --- WEBRTC CONNECTION LIFECYCLE ---
+      function initPeerConnection() {
+        if (peerConnection) {
+          try { peerConnection.close(); } catch (e) {}
+          peerConnection = null;
+        }
+
+        // Strictly local LAN/Wi-Fi candidates without public STUN/TURN servers
+        const config = { iceServers: [] };
+        peerConnection = new RTCPeerConnection(config);
+        log('INFO', 'RTCPeerConnection initialized with local host-only candidate policy.');
+
+        // Explicit state listeners
+        peerConnection.onconnectionstatechange = () => {
+          const state = peerConnection.connectionState;
+          log('ICE', `Connection state changed: ${state}`);
+          if (state === 'connected') {
+            updateConnectionStatus('connected', 'P2P Tunnel Active');
+            onPeerConnected();
+          } else if (state === 'connecting') {
+            updateConnectionStatus('handshake', 'Connecting P2P...');
+          } else if (state === 'disconnected' || state === 'failed' || state === 'closed') {
+            updateConnectionStatus('disconnected', `P2P ${state}`);
+            onPeerDisconnected();
+          }
+        };
+
+        peerConnection.oniceconnectionstatechange = () => {
+          const iceState = peerConnection.iceConnectionState;
+          log('ICE', `ICE state: ${iceState}`);
+          if (iceState === 'connected' || iceState === 'completed') {
+            updateConnectionStatus('connected');
+          } else if (iceState === 'failed') {
+            updateConnectionStatus('disconnected', 'ICE Failed');
+          }
+        };
+
+        peerConnection.onicecandidateerror = (event) => {
+          log('WARN', `ICE Candidate error: ${event.errorText || 'Local interface probe'}`);
+        };
+
+        return peerConnection;
+      }
+
+      function setupDataChannel(channel) {
+        dataChannel = channel;
+        dataChannel.binaryType = 'arraybuffer';
+
+        dataChannel.onopen = () => {
+          log('DATA', `DataChannel "${dataChannel.label}" is OPEN! Maximum buffer size: 64 KB.`);
+          updateConnectionStatus('connected', 'P2P Tunnel Active');
+          startHeartbeat();
+          onPeerConnected();
+        };
+
+        dataChannel.onclose = () => {
+          log('DATA', 'DataChannel closed.');
+          stopHeartbeat();
+          updateConnectionStatus('disconnected', 'Channel Closed');
+          onPeerDisconnected();
+        };
+
+        dataChannel.onerror = (err) => {
+          log('ERROR', `DataChannel error: ${err.message || 'Channel malfunction'}`);
+        };
+
+        dataChannel.onmessage = (event) => {
+          handleIncomingMessage(event.data);
+        };
+      }
+
+      // --- HEARTBEAT & LATENCY CHECK ---
+      function startHeartbeat() {
+        stopHeartbeat();
+        const latencyEl = document.getElementById('latency-display');
+        latencyEl.style.display = 'inline-block';
+
+        pingIntervalId = setInterval(() => {
+          if (dataChannel && dataChannel.readyState === 'open') {
+            const pingMsg = JSON.stringify({ type: 'PING', ts: Date.now() });
+            try {
+              dataChannel.send(pingMsg);
+            } catch (e) {
+              log('WARN', `Ping send failed: ${e.message}`);
+            }
+          }
+        }, PING_INTERVAL);
+      }
+
+      function stopHeartbeat() {
+        if (pingIntervalId) {
+          clearInterval(pingIntervalId);
+          pingIntervalId = null;
+        }
+        document.getElementById('latency-display').style.display = 'none';
+      }
+
+      // --- PROTOCOL & MESSAGE HANDLING ---
+      function handleIncomingMessage(raw) {
+        if (typeof raw === 'string') {
+          try {
+            const msg = JSON.parse(raw);
+            
+            // Ping / Pong
+            if (msg.type === 'PING') {
+              if (dataChannel && dataChannel.readyState === 'open') {
+                dataChannel.send(JSON.stringify({ type: 'PONG', ts: msg.ts }));
+              }
+              return;
+            }
+
+            if (msg.type === 'PONG') {
+              const rtt = Date.now() - msg.ts;
+              lastLatencyMs = rtt;
+              document.getElementById('latency-display').textContent = `${rtt} ms`;
+              const hostRtt = document.getElementById('host-metric-rtt');
+              if (hostRtt) hostRtt.textContent = `${rtt} ms`;
+              return;
+            }
+
+            // Host receives Fetch Request from Client
+            if (msg.type === 'FETCH_REQUEST') {
+              handleHostFetchRequest(msg);
+              return;
+            }
+
+            // Client receives Stream Frame
+            if (msg.type === 'METADATA') {
+              handleClientMetadata(msg);
+              return;
+            }
+
+            if (msg.type === 'CHUNK') {
+              handleClientChunk(msg);
+              return;
+            }
+
+            if (msg.type === 'END') {
+              handleClientEnd(msg);
+              return;
+            }
+
+            if (msg.type === 'ERROR') {
+              handleClientError(msg);
+              return;
+            }
+          } catch (err) {
+            log('ERROR', `Failed to parse message: ${err.message}`);
+          }
+        }
+      }
+
+      // --- HOST PROXY FETCH RELAY ENGINE ---
+      async function handleHostFetchRequest(req) {
+        log('DATA', `Host received request [${req.method}] ${req.url}`);
+        hostStats.requestsRelayed++;
+        hostStats.activeRequests++;
+        updateHostStatsUI();
+
+        const startTime = Date.now();
+        let status = 0;
+        let statusText = '';
+        let mimeType = 'application/octet-stream';
+        let headersObj = {};
+
+        try {
+          const fetchOptions = {
+            method: req.method || 'GET',
+            headers: req.headers || {},
+          };
+
+          if (req.body && (req.method === 'POST' || req.method === 'PUT')) {
+            fetchOptions.body = req.body;
+          }
+
+          const response = await fetch(req.url, fetchOptions);
+          status = response.status;
+          statusText = response.statusText;
+          mimeType = response.headers.get('content-type') || 'application/octet-stream';
+
+          response.headers.forEach((val, key) => {
+            headersObj[key] = val;
+          });
+
+          const arrayBuffer = await response.arrayBuffer();
+          const uint8 = new Uint8Array(arrayBuffer);
+          const totalBytes = uint8.byteLength;
+          const totalChunks = Math.ceil(totalBytes / CHUNK_SIZE) || 1;
+          const duration = Date.now() - startTime;
+
+          hostStats.bytesRelayed += totalBytes;
+          hostStats.activeRequests = Math.max(0, hostStats.activeRequests - 1);
+          updateHostStatsUI();
+          addRelayTableRow(req.method, req.url, status, totalChunks, totalBytes, duration);
+
+          log('DATA', `Fetched ${totalBytes} bytes (${totalChunks} chunks) in ${duration}ms. Streaming to peer...`);
+
+          // 1. Send METADATA frame
+          const metaMsg = JSON.stringify({
+            id: req.id,
+            type: 'METADATA',
+            url: req.url,
+            status,
+            statusText,
+            mimeType,
+            headers: headersObj,
+            totalChunks,
+            totalBytes,
+          });
+          dataChannel.send(metaMsg);
+
+          // 2. Stream CHUNKS (16 KB each encoded to Base64)
+          for (let i = 0; i < totalChunks; i++) {
+            const start = i * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, totalBytes);
+            const slice = uint8.subarray(start, end);
+            const chunkBase64 = uint8ToBase64(slice);
+
+            const chunkMsg = JSON.stringify({
+              id: req.id,
+              type: 'CHUNK',
+              chunkIndex: i,
+              totalChunks,
+              data: chunkBase64,
+            });
+
+            // Backpressure check if bufferedAmount is high
+            while (dataChannel.bufferedAmount > 65536) {
+              await new Promise(r => setTimeout(r, 20));
+            }
+
+            dataChannel.send(chunkMsg);
+          }
+
+          // 3. Send END frame
+          const endMsg = JSON.stringify({
+            id: req.id,
+            type: 'END',
+          });
+          dataChannel.send(endMsg);
+          log('DATA', `Finished streaming request ${req.id}`);
+        } catch (err) {
+          log('ERROR', `Host fetch failed: ${err.message}`);
+          hostStats.activeRequests = Math.max(0, hostStats.activeRequests - 1);
+          updateHostStatsUI();
+          addRelayTableRow(req.method, req.url, 0, 0, 0, Date.now() - startTime, err.message);
+
+          if (dataChannel && dataChannel.readyState === 'open') {
+            dataChannel.send(JSON.stringify({
+              id: req.id,
+              type: 'ERROR',
+              url: req.url,
+              error: err.message || 'CORS or Network Error prevented host from fetching this resource.',
+            }));
+          }
+        }
+      }
+
+      function updateHostStatsUI() {
+        const reqEl = document.getElementById('host-metric-requests');
+        const bytesEl = document.getElementById('host-metric-bytes');
+        if (reqEl) reqEl.textContent = hostStats.requestsRelayed;
+        if (bytesEl) bytesEl.textContent = formatBytes(hostStats.bytesRelayed);
+      }
+
+      function addRelayTableRow(method, url, status, chunks, bytes, duration, errMsg) {
+        const tbody = document.getElementById('relay-table-tbody');
+        const emptyRow = document.getElementById('relay-empty-row');
+        if (emptyRow) emptyRow.remove();
+
+        const tr = document.createElement('tr');
+        const timeStr = new Date().toLocaleTimeString();
+        const statusBadge = status >= 200 && status < 300 
+          ? `<span class="status-code-badge s2xx">${status} OK</span>`
+          : `<span class="status-code-badge s4xx">${status || 'ERR'}</span>`;
+
+        tr.innerHTML = `
+          <td style="color: var(--text-dim); font-family: ui-monospace, monospace;">${timeStr}</td>
+          <td><span style="font-weight: 700; color: #60a5fa;">${escapeHtml(method)}</span></td>
+          <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, monospace;" title="${escapeHtml(url)}">
+            ${escapeHtml(url)}
+          </td>
+          <td>${statusBadge}</td>
+          <td style="font-family: ui-monospace, monospace;">${chunks}</td>
+          <td style="font-family: ui-monospace, monospace;">${formatBytes(bytes)}</td>
+          <td style="font-family: ui-monospace, monospace;">${duration} ms</td>
+        `;
+        tbody.insertBefore(tr, tbody.firstChild);
+      }
+
+      // --- CLIENT RESPONSE REASSEMBLY & RENDERING ---
+      function handleClientMetadata(msg) {
+        log('DATA', `Receiving response: ${msg.status} ${msg.statusText} (${msg.totalChunks} chunks, ${formatBytes(msg.totalBytes)})`);
+        
+        activeTransfers.set(msg.id, {
+          metadata: msg,
+          chunks: new Array(msg.totalChunks),
+          receivedCount: 0,
+          startTime: Date.now(),
+        });
+
+        // Show progress bar
+        const progressBox = document.getElementById('transfer-progress-box');
+        progressBox.style.display = 'block';
+        updateProgressBar(0, msg.totalChunks, 0);
+
+        // Update status badge
+        const badge = document.getElementById('resp-status-badge');
+        badge.className = 'status-code-badge ' + (msg.status >= 200 && msg.status < 300 ? 's2xx' : 's4xx');
+        badge.textContent = `${msg.status} ${msg.statusText}`;
+
+        document.getElementById('resp-mime-stat').textContent = `Type: ${msg.mimeType.split(';')[0]}`;
+        document.getElementById('resp-size-stat').textContent = `Size: ${formatBytes(msg.totalBytes)}`;
+
+        // Render headers in table
+        const tbody = document.getElementById('headers-tbody');
+        tbody.innerHTML = '';
+        if (msg.headers && Object.keys(msg.headers).length > 0) {
+          for (const [k, v] of Object.entries(msg.headers)) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${escapeHtml(k)}</td><td>${escapeHtml(v)}</td>`;
+            tbody.appendChild(tr);
+          }
+        } else {
+          tbody.innerHTML = '<tr><td colspan="2" style="color: var(--text-dim); text-align: center;">No headers provided.</td></tr>';
+        }
+      }
+
+      function handleClientChunk(msg) {
+        const transfer = activeTransfers.get(msg.id);
+        if (!transfer) return;
+
+        const sliceBytes = base64ToUint8(msg.data);
+        transfer.chunks[msg.chunkIndex] = sliceBytes;
+        transfer.receivedCount++;
+
+        const receivedBytes = transfer.chunks.reduce((acc, c) => acc + (c ? c.byteLength : 0), 0);
+        updateProgressBar(transfer.receivedCount, transfer.metadata.totalChunks, receivedBytes);
+      }
+
+      function updateProgressBar(received, total, bytes) {
+        const fill = document.getElementById('progress-fill');
+        const numText = document.getElementById('progress-numbers');
+        const pct = total > 0 ? Math.round((received / total) * 100) : 0;
+        fill.style.width = `${pct}%`;
+        numText.textContent = `${received} / ${total} chunks (${formatBytes(bytes)})`;
+      }
+
+      function handleClientEnd(msg) {
+        const transfer = activeTransfers.get(msg.id);
+        if (!transfer) return;
+
+        const duration = Date.now() - transfer.startTime;
+        document.getElementById('resp-time-stat').textContent = `Duration: ${duration} ms`;
+
+        // Hide progress box after short delay
+        setTimeout(() => {
+          document.getElementById('transfer-progress-box').style.display = 'none';
+        }, 600);
+
+        // Reassemble Blob
+        const blob = new Blob(transfer.chunks, { type: transfer.metadata.mimeType });
+        currentResponseBlob = blob;
+        activeTransfers.delete(msg.id);
+
+        log('DATA', `Reassembled complete Blob (${formatBytes(blob.size)}) in ${duration}ms. Rendering output...`);
+        renderResponse(blob, transfer.metadata.mimeType, transfer.metadata.url);
+        showToast('Resource received and reassembled!');
+      }
+
+      function handleClientError(msg) {
+        log('ERROR', `Relay Error for ${msg.url}: ${msg.error}`);
+        document.getElementById('transfer-progress-box').style.display = 'none';
+
+        const badge = document.getElementById('resp-status-badge');
+        badge.className = 'status-code-badge err';
+        badge.textContent = 'RELAY ERROR';
+
+        const previewContainer = document.getElementById('preview-container');
+        previewContainer.innerHTML = `
+          <div style="padding: 24px; text-align: center; color: #f87171;">
+            <div style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">Request Failed Through Proxy</div>
+            <div style="font-size: 12px; color: var(--text-muted); max-width: 480px; margin: 0 auto;">
+              ${escapeHtml(msg.error)}
+            </div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-top: 12px;">
+              Tip: If requesting external sites, ensure the target API permits CORS or requests allow origin.
+            </div>
+          </div>
+        `;
+
+        document.getElementById('raw-output-box').textContent = `ERROR: ${msg.error}`;
+      }
+
+      function renderResponse(blob, mimeType, url) {
+        const previewContainer = document.getElementById('preview-container');
+        const rawBox = document.getElementById('raw-output-box');
+        previewContainer.innerHTML = '';
+
+        const isImage = mimeType.startsWith('image/');
+        const isHtml = mimeType.includes('html');
+        const isJson = mimeType.includes('json');
+        const isText = mimeType.startsWith('text/') || isJson || mimeType.includes('javascript') || mimeType.includes('xml');
+
+        if (isImage) {
+          const imgUrl = URL.createObjectURL(blob);
+          const img = document.createElement('img');
+          img.src = imgUrl;
+          img.alt = 'Rendered peer image';
+          previewContainer.appendChild(img);
+          rawBox.textContent = `[Binary Image Data: ${mimeType}, Size: ${formatBytes(blob.size)}]`;
+        } else if (isHtml) {
+          const iframe = document.createElement('iframe');
+          iframe.sandbox = 'allow-scripts allow-same-origin';
+          const htmlUrl = URL.createObjectURL(blob);
+          iframe.src = htmlUrl;
+          previewContainer.appendChild(iframe);
+
+          blob.text().then(txt => {
+            currentResponseText = txt;
+            rawBox.textContent = txt;
+          });
+        } else if (isText) {
+          blob.text().then(txt => {
+            currentResponseText = txt;
+            let displayTxt = txt;
+            if (isJson) {
+              try {
+                const parsed = JSON.parse(txt);
+                displayTxt = JSON.stringify(parsed, null, 2);
+              } catch (e) {}
+            }
+            rawBox.textContent = displayTxt;
+            
+            // In preview container: clean formatted card
+            previewContainer.innerHTML = `
+              <div style="width: 100%; height: 100%; padding: 20px; overflow-y: auto; text-align: left;">
+                <pre style="color: #6ee7b7; font-size: 12px; font-family: ui-monospace, monospace; white-space: pre-wrap; word-break: break-all;">${escapeHtml(displayTxt)}</pre>
+              </div>
+            `;
+          });
+        } else {
+          // Other binaries
+          const blobUrl = URL.createObjectURL(blob);
+          previewContainer.innerHTML = `
+            <div style="text-align: center; padding: 24px;">
+              <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 6px;">Binary File Received</div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">MIME: ${escapeHtml(mimeType)} (${formatBytes(blob.size)})</div>
+              <a href="${blobUrl}" download="relayed-file" class="btn btn-emerald">Download Binary File</a>
+            </div>
+          `;
+          rawBox.textContent = `[Binary Object: ${mimeType}, ${blob.size} bytes]`;
+        }
+      }
+
+      // --- QR CODE GENERATION & CAMERA SCANNER ---
+      function renderQRCode(token) {
+        localSignalingToken = token;
+        const displayEl = document.getElementById('qrcode-display');
+        displayEl.innerHTML = '';
+
+        if (typeof QRCode !== 'undefined') {
+          new QRCode(displayEl, {
+            text: token,
+            width: 250,
+            height: 250,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.L, // L gives lowest error correction = highest data capacity!
+          });
+          log('INFO', `Rendered high-density QR Code (${token.length} chars)`);
+        } else {
+          displayEl.innerHTML = '<div style="color: #f87171; font-size: 11px;">QRCode library loading error</div>';
+        }
+
+        document.getElementById('modal-my-token').value = token;
+      }
+
+      async function startCameraScanner() {
+        stopCameraScanner();
+        const readerEl = document.getElementById('qr-reader');
+        readerEl.innerHTML = '';
+
+        if (typeof Html5Qrcode === 'undefined') {
+          log('ERROR', 'Html5Qrcode library not loaded');
+          return;
+        }
+
+        try {
+          html5QrScanner = new Html5Qrcode('qr-reader');
+          const cameras = await Html5Qrcode.getCameras();
+          populateCameraSelect(cameras);
+
+          const cameraConfig = selectedCameraId 
+            ? { deviceId: { exact: selectedCameraId } }
+            : { facingMode: 'environment' };
+
+          const config = {
+            fps: 10,
+            qrbox: (w, h) => {
+              const edge = Math.min(w, h);
+              const size = Math.floor(edge * 0.75);
+              return { width: Math.max(180, size), height: Math.max(180, size) };
+            },
+            aspectRatio: 1.0,
+          };
+
+          await html5QrScanner.start(
+            cameraConfig,
+            config,
+            (decodedText) => {
+              handleScannedToken(decodedText);
+            },
+            (errorMessage) => {
+              // Frame scan pass through
+            }
+          );
+          isScanning = true;
+          log('INFO', 'Camera scanner active. Waiting for peer QR code...');
+        } catch (err) {
+          log('WARN', `Camera scanner initialization: ${err.message || err}`);
+          readerEl.innerHTML = `
+            <div style="padding: 24px; text-align: center; color: var(--text-dim); font-size: 11px;">
+              Camera unavailable or permission denied.<br />
+              Use "Manual Token Fallback" above to paste tokens.
+            </div>
+          `;
+        }
+      }
+
+      function stopCameraScanner() {
+        if (html5QrScanner) {
+          try {
+            if (html5QrScanner.isScanning) {
+              html5QrScanner.stop();
+            }
+            html5QrScanner.clear();
+          } catch (e) {}
+          html5QrScanner = null;
+          isScanning = false;
+        }
+      }
+
+      function populateCameraSelect(cameras) {
+        const select = document.getElementById('camera-select');
+        select.innerHTML = '<option value="">Select Camera Device...</option>';
+        if (cameras && cameras.length > 0) {
+          cameras.forEach((cam, idx) => {
+            const opt = document.createElement('option');
+            opt.value = cam.id;
+            opt.textContent = cam.label || `Camera ${idx + 1}`;
+            if (cam.id === selectedCameraId) opt.selected = true;
+            select.appendChild(opt);
+          });
+        }
+      }
+
+      async function handleScannedToken(tokenText) {
+        log('INFO', `QR Code successfully scanned! (${tokenText.length} characters)`);
+        showToast('QR Code captured! Processing signaling token...');
+
+        try {
+          const parsed = parseSignalingToken(tokenText);
+          log('INFO', `Parsed remote description type: "${parsed.type}"`);
+
+          if (parsed.type === 'offer' && currentRole === 'client') {
+            await handleRemoteOffer(parsed.sdp);
+          } else if (parsed.type === 'answer' && currentRole === 'host') {
+            await handleRemoteAnswer(parsed.sdp);
+          } else {
+            log('WARN', `Scanned token type "${parsed.type}" unexpected for current role "${currentRole}".`);
+            showToast(`Scanned ${parsed.type}, waiting for expected token.`, 4000);
+          }
+        } catch (err) {
+          log('ERROR', `Failed to apply scanned token: ${err.message}`);
+          showToast('Invalid QR Code token format', 4000);
+        }
+      }
+
+      // --- SIGNALING FLOW IMPLEMENTATION ---
+      // 1. Host Mode Launch
+      async function launchHostMode() {
+        currentRole = 'host';
+        updateRoleBadge('host');
+        updateConnectionStatus('handshake', 'Gathering Local Candidates...');
+        switchView('view-signaling');
+
+        document.getElementById('wizard-step-num').textContent = '1';
+        document.getElementById('wizard-step-title').textContent = 'Step 1: Offer Exchange';
+        document.getElementById('wizard-step-desc').textContent = 'Display this Offer QR code to the Client, then scan their Answer QR code.';
+        document.getElementById('qr-panel-title').textContent = '1. Host Offer QR Code';
+        document.getElementById('qr-panel-subtitle').textContent = 'Have the offline Client scan this QR code';
+        document.getElementById('scanner-panel-title').textContent = '2. Scan Client Answer QR';
+        document.getElementById('scanner-panel-subtitle').textContent = 'Point camera at the Client device after they scan your Offer';
+
+        initPeerConnection();
+        const dc = peerConnection.createDataChannel('airbridge-proxy', { ordered: true });
+        setupDataChannel(dc);
+
+        let sdpGenerated = false;
+
+        peerConnection.onicecandidate = (e) => {
+          if (!e.candidate && !sdpGenerated) {
+            sdpGenerated = true;
+            const fullSdp = peerConnection.localDescription.sdp;
+            const token = createSignalingToken('offer', fullSdp);
+            log('INFO', 'ICE gathering complete. Generated compressed Host Offer token.');
+            renderQRCode(token);
+            startCameraScanner();
+          }
+        };
+
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+
+        // Fallback in case onicecandidate with null is delayed
+        setTimeout(() => {
+          if (!sdpGenerated && peerConnection.localDescription) {
+            sdpGenerated = true;
+            const token = createSignalingToken('offer', peerConnection.localDescription.sdp);
+            log('INFO', 'Candidate gathering timed out; generating Offer with current host candidates.');
+            renderQRCode(token);
+            startCameraScanner();
+          }
+        }, 1500);
+      }
+
+      // 2. Client Mode Launch
+      async function launchClientMode() {
+        currentRole = 'client';
+        updateRoleBadge('client');
+        updateConnectionStatus('handshake', 'Scan Host Offer');
+        switchView('view-signaling');
+
+        document.getElementById('wizard-step-num').textContent = '1';
+        document.getElementById('wizard-step-title').textContent = 'Step 1: Scan Host Offer';
+        document.getElementById('wizard-step-desc').textContent = 'Scan the Offer QR displayed on the Host Gateway device.';
+        document.getElementById('qr-panel-title').textContent = 'Answer QR (Will appear after scanning)';
+        document.getElementById('qr-panel-subtitle').textContent = 'Waiting for Host Offer scan...';
+        document.getElementById('scanner-panel-title').textContent = 'Scan Host Offer QR';
+        document.getElementById('scanner-panel-subtitle').textContent = 'Align camera with the Host computer screen';
+
+        document.getElementById('qrcode-display').innerHTML = '<div style="color: #64748b; font-size: 11px;">Scan Host Offer first to generate Answer QR</div>';
+
+        initPeerConnection();
+        peerConnection.ondatachannel = (e) => {
+          log('DATA', `Inbound DataChannel received: "${e.channel.label}"`);
+          setupDataChannel(e.channel);
+        };
+
+        startCameraScanner();
+      }
+
+      // Client processes Remote Offer -> generates Answer
+      async function handleRemoteOffer(offerSdp) {
+        log('INFO', 'Applying Remote Offer SDP...');
+        await peerConnection.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: offerSdp }));
+
+        document.getElementById('wizard-step-num').textContent = '2';
+        document.getElementById('wizard-step-title').textContent = 'Step 2: Show Answer QR';
+        document.getElementById('wizard-step-desc').textContent = 'Remote Offer accepted. Show this Answer QR to the Host device.';
+        document.getElementById('qr-panel-title').textContent = 'Client Answer QR Code';
+        document.getElementById('qr-panel-subtitle').textContent = 'Show this QR code to the Host device camera';
+
+        let answerGenerated = false;
+
+        peerConnection.onicecandidate = (e) => {
+          if (!e.candidate && !answerGenerated) {
+            answerGenerated = true;
+            const fullSdp = peerConnection.localDescription.sdp;
+            const token = createSignalingToken('answer', fullSdp);
+            log('INFO', 'ICE gathering complete. Generated compressed Client Answer token.');
+            renderQRCode(token);
+            stopCameraScanner(); // Stop camera on client since client just shows the answer QR
+          }
+        };
+
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+
+        setTimeout(() => {
+          if (!answerGenerated && peerConnection.localDescription) {
+            answerGenerated = true;
+            const token = createSignalingToken('answer', peerConnection.localDescription.sdp);
+            log('INFO', 'Generated Answer with current host candidates.');
+            renderQRCode(token);
+            stopCameraScanner();
+          }
+        }, 1200);
+      }
+
+      // Host processes Remote Answer
+      async function handleRemoteAnswer(answerSdp) {
+        log('INFO', 'Applying Remote Answer SDP...');
+        await peerConnection.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: answerSdp }));
+        log('INFO', 'Remote Answer applied! Awaiting P2P candidate pair binding...');
+        showToast('Answer applied! Connecting P2P tunnel...');
+        stopCameraScanner();
+      }
+
+      // --- WORKSPACE TRANSITION ON CONNECTION ---
+      function onPeerConnected() {
+        stopCameraScanner();
+        switchView('view-workspace');
+
+        if (currentRole === 'client') {
+          document.getElementById('client-workspace').style.display = 'flex';
+          document.getElementById('host-workspace').style.display = 'none';
+        } else if (currentRole === 'host') {
+          document.getElementById('host-workspace').style.display = 'flex';
+          document.getElementById('client-workspace').style.display = 'none';
+        }
+
+        showToast('AirBridge P2P Tunnel Established!');
+      }
+
+      function onPeerDisconnected() {
+        // Reset state or show alert
+      }
+
+      // --- EVENT HANDLERS & LISTENERS ---
+      document.getElementById('card-select-host').addEventListener('click', launchHostMode);
+      document.getElementById('card-select-client').addEventListener('click', launchClientMode);
+
+      document.getElementById('btn-abort-wizard').addEventListener('click', () => {
+        stopCameraScanner();
+        if (peerConnection) {
+          try { peerConnection.close(); } catch (e) {}
+          peerConnection = null;
+        }
+        currentRole = null;
+        updateRoleBadge(null);
+        updateConnectionStatus('disconnected');
+        switchView('view-role-select');
+      });
+
+      document.getElementById('btn-logo-home').addEventListener('click', () => {
+        if (confirm('Switch role and reset current peer connection?')) {
+          stopCameraScanner();
+          stopHeartbeat();
+          if (peerConnection) {
+            try { peerConnection.close(); } catch (e) {}
+            peerConnection = null;
+          }
+          currentRole = null;
+          updateRoleBadge(null);
+          updateConnectionStatus('disconnected');
+          switchView('view-role-select');
+        }
+      });
+
+      // Terminal Drawer Toggle
+      const terminalDrawer = document.getElementById('terminal-drawer');
+      const terminalChevron = document.getElementById('terminal-chevron');
+      document.getElementById('terminal-toggle-bar').addEventListener('click', () => {
+        const isOpen = terminalDrawer.classList.toggle('open');
+        terminalChevron.textContent = isOpen ? '▼ Collapse' : '▲ Expand';
+      });
+
+      document.getElementById('btn-toggle-terminal').addEventListener('click', () => {
+        const isOpen = terminalDrawer.classList.toggle('open');
+        terminalChevron.textContent = isOpen ? '▼ Collapse' : '▲ Expand';
+      });
+
+      document.getElementById('btn-clear-logs').addEventListener('click', (e) => {
+        e.stopPropagation();
+        terminalBody.innerHTML = '';
+        logEntriesCount = 0;
+        logCountBadge.textContent = '0 events';
+      });
+
+      // Camera Controls
+      document.getElementById('camera-select').addEventListener('change', (e) => {
+        selectedCameraId = e.target.value;
+        if (isScanning) {
+          startCameraScanner();
+        }
+      });
+
+      document.getElementById('btn-flip-camera').addEventListener('click', () => {
+        const select = document.getElementById('camera-select');
+        if (select.options.length > 2) {
+          let nextIndex = select.selectedIndex + 1;
+          if (nextIndex >= select.options.length) nextIndex = 1;
+          select.selectedIndex = nextIndex;
+          selectedCameraId = select.value;
+          startCameraScanner();
+        } else {
+          showToast('Single camera detected');
+        }
+      });
+
+      // Copy & Download Token
+      document.getElementById('btn-copy-token').addEventListener('click', () => {
+        if (localSignalingToken) {
+          navigator.clipboard.writeText(localSignalingToken).then(() => {
+            showToast('Signaling token copied to clipboard!');
+          });
+        }
+      });
+
+      document.getElementById('btn-download-qr').addEventListener('click', () => {
+        const img = document.querySelector('#qrcode-display img');
+        if (img && img.src) {
+          const a = document.createElement('a');
+          a.href = img.src;
+          a.download = `airbridge-${currentRole}-qr.png`;
+          a.click();
+        }
+      });
+
+      // Manual Token Modal
+      const modal = document.getElementById('manual-token-modal');
+      document.getElementById('btn-manual-token-modal').addEventListener('click', () => {
+        modal.classList.add('active');
+        document.getElementById('modal-my-token').value = localSignalingToken || '';
+      });
+
+      document.getElementById('btn-modal-close').addEventListener('click', () => {
+        modal.classList.remove('active');
+      });
+
+      document.getElementById('btn-modal-copy').addEventListener('click', () => {
+        const val = document.getElementById('modal-my-token').value;
+        if (val) {
+          navigator.clipboard.writeText(val).then(() => showToast('Token copied!'));
+        }
+      });
+
+      document.getElementById('btn-modal-apply').addEventListener('click', () => {
+        const token = document.getElementById('modal-peer-token').value.trim();
+        if (!token) {
+          alert('Please paste the peer token first.');
+          return;
+        }
+        modal.classList.remove('active');
+        handleScannedToken(token);
+      });
+
+      // Manual Text Box Below Scanner Listeners
+      const manualPeerInput = document.getElementById('manual-peer-token-input');
+      const btnApplyManual = document.getElementById('btn-apply-manual-token');
+      const btnPasteClipboard = document.getElementById('btn-paste-clipboard');
+      const btnClearManual = document.getElementById('btn-clear-manual-input');
+
+      if (btnApplyManual && manualPeerInput) {
+        btnApplyManual.addEventListener('click', () => {
+          const token = manualPeerInput.value.trim();
+          if (!token) {
+            alert('Please enter or paste the peer signaling token first.');
+            manualPeerInput.focus();
+            return;
+          }
+          handleScannedToken(token);
+        });
+
+        // Ctrl+Enter or Cmd+Enter to apply
+        manualPeerInput.addEventListener('keydown', (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            btnApplyManual.click();
+          }
+        });
+      }
+
+      if (btnPasteClipboard && manualPeerInput) {
+        btnPasteClipboard.addEventListener('click', async () => {
+          try {
+            if (navigator.clipboard && navigator.clipboard.readText) {
+              const text = await navigator.clipboard.readText();
+              if (text && text.trim()) {
+                manualPeerInput.value = text.trim();
+                showToast('Pasted peer token from clipboard!');
+              } else {
+                showToast('Clipboard is empty');
+              }
+            } else {
+              manualPeerInput.focus();
+              showToast('Press Ctrl+V / Cmd+V to paste into the box');
+            }
+          } catch (e) {
+            manualPeerInput.focus();
+            showToast('Clipboard access restricted. Please paste with Ctrl+V / Cmd+V');
+          }
+        });
+      }
+
+      if (btnClearManual && manualPeerInput) {
+        btnClearManual.addEventListener('click', () => {
+          manualPeerInput.value = '';
+          manualPeerInput.focus();
+        });
+      }
+
+      // Client: Address Bar & Fetch
+      document.getElementById('form-fetch-request').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const method = document.getElementById('http-method').value;
+        const url = document.getElementById('http-url').value.trim();
+
+        if (!dataChannel || dataChannel.readyState !== 'open') {
+          alert('P2P DataChannel is not open. Please verify peer connection.');
+          return;
+        }
+
+        const reqId = 'req-' + Math.random().toString(36).substring(2, 9);
+        log('DATA', `Client dispatching [${method}] ${url} (ID: ${reqId})`);
+
+        const reqMsg = JSON.stringify({
+          id: reqId,
+          type: 'FETCH_REQUEST',
+          method,
+          url,
+          headers: {
+            'Accept': '*/*',
+          },
+        });
+
+        dataChannel.send(reqMsg);
+        showToast(`Tunnel request sent for ${url}`);
+      });
+
+      // Presets
+      document.querySelectorAll('.preset-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const url = btn.dataset.url;
+          document.getElementById('http-url').value = url;
+          document.getElementById('form-fetch-request').dispatchEvent(new Event('submit'));
+        });
+      });
+
+      // Tab Switching in Response Viewer
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          btn.classList.add('active');
+          const targetId = btn.dataset.tab;
+          document.getElementById(targetId).classList.add('active');
+        });
+      });
+
+      // Response Actions
+      document.getElementById('btn-copy-response').addEventListener('click', () => {
+        if (currentResponseText) {
+          navigator.clipboard.writeText(currentResponseText).then(() => showToast('Response text copied!'));
+        } else {
+          showToast('No textual response to copy');
+        }
+      });
+
+      document.getElementById('btn-download-response').addEventListener('click', () => {
+        if (currentResponseBlob) {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(currentResponseBlob);
+          a.download = 'relayed-response-output';
+          a.click();
+        } else {
+          showToast('No response data to download');
+        }
+      });
+
+      // Host: Clear Relay History
+      document.getElementById('btn-clear-relay-history').addEventListener('click', () => {
+        const tbody = document.getElementById('relay-table-tbody');
+        tbody.innerHTML = `
+          <tr id="relay-empty-row">
+            <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 30px;">
+              Waiting for peer requests... Client requests will appear here in real-time.
+            </td>
+          </tr>
+        `;
+      });
+
+      // Standalone HTML Exporter
+      document.getElementById('btn-export-html').addEventListener('click', () => {
+        const htmlContent = document.documentElement.outerHTML;
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'airbridge-p2p-proxy.html';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Exported standalone airbridge-p2p-proxy.html!');
+      });
+
+      // Initialize
+      log('INFO', 'AirBridge WebRTC Proxy loaded. Ready to launch Host or Client node.');
+    })();
+  </script>
+</body>
+</html>
